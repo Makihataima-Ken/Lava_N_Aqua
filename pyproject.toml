@@ -3,5 +3,11 @@ name = "lava-and-aqua"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.14"
-dependencies = []
+requires-python = "==3.12.12"
+dependencies = [
+    "pygame>=2.1.0",
+    "pip>=23.0.1"
+]
+
+[tool.uv.extra-build-dependencies]
+pygame = ["setuptools._distutils.msvccompiler"]
