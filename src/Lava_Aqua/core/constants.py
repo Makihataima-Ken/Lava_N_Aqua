@@ -52,6 +52,7 @@ class TileType(Enum):
     WATER = "W"
     PLAYER = "P"
     EXIT = "E"
+    FLOOR = "."
 
 # Animation settings
 ANIMATION_SPEED = 0.1

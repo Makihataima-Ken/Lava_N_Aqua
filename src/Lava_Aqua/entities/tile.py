@@ -5,17 +5,7 @@ from enum import Enum
 import pygame
 import math
 
-from ..core.constants import Color, TILE_SIZE
-
-
-class TileType(Enum):
-    """Enumeration of tile types."""
-    EMPTY = ' '
-    WALL = '#'
-    EXIT = 'E'
-    FLOOR = '.'
-    WATER = 'W'
-
+from ..core.constants import Color, TILE_SIZE, TileType
 
 class Tile:
     """Individual tile entity."""
@@ -97,7 +87,7 @@ class Tile:
     
     def _draw_empty(self, surface: pygame.Surface, rect: pygame.Rect) -> None:
         """Draw empty tile."""
-        pygame.draw.rect(surface, (200, 200, 200), rect)
+        pygame.draw.rect(surface, Color.EMPTY, rect)
         pygame.draw.rect(surface, (150, 150, 150), rect, 1)
     
     def _draw_floor(self, surface: pygame.Surface, rect: pygame.Rect) -> None:
@@ -108,7 +98,7 @@ class Tile:
     def _draw_wall(self, surface: pygame.Surface, rect: pygame.Rect) -> None:
         """Draw wall tile with 3D effect."""
         # Main wall
-        pygame.draw.rect(surface, (100, 100, 100), rect)
+        pygame.draw.rect(surface, Color.WALL, rect)
         
         # Highlight (top-left)
         pygame.draw.line(surface, (150, 150, 150), 
@@ -123,7 +113,7 @@ class Tile:
                         rect.topright, rect.bottomright, 2)
         
         # Border
-        pygame.draw.rect(surface, (70, 70, 70), rect, 1)
+        pygame.draw.rect(surface, Color.WALL_DARK, rect, 1)
     
     def _draw_exit(self, surface: pygame.Surface, rect: pygame.Rect,
                    animation_time: float) -> None:
