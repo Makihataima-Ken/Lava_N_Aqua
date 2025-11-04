@@ -85,8 +85,6 @@ class Tile:
             self._draw_wall(surface, rect)
         elif self._tile_type == TileType.EXIT:
             self._draw_exit(surface, rect, animation_time)
-        elif self._tile_type == TileType.WATER:
-            self._draw_water(surface, rect, animation_time)
         elif self._tile_type == TileType.FLOOR:
             self._draw_floor(surface, rect)
         else:  # EMPTY
@@ -138,30 +136,3 @@ class Tile:
         
         # Border
         pygame.draw.rect(surface, Color.EXIT_DARK, rect, 2)
-    
-    def _draw_water(self, surface: pygame.Surface, rect: pygame.Rect,
-                    animation_time: float) -> None:
-        """Draw water tile with ripple effect."""
-        # Animate water ripples
-        wave1 = math.sin(animation_time * 2) * 0.15 + 0.5
-        wave2 = math.sin(animation_time * 2 + 1) * 0.15 + 0.5
-        
-        base_color = Color.WATER
-        dark_color = Color.WATER_DARK
-        
-        r = int(dark_color[0] + (base_color[0] - dark_color[0]) * wave1)
-        g = int(dark_color[1] + (base_color[1] - dark_color[1]) * wave1)
-        b = int(dark_color[2] + (base_color[2] - dark_color[2]) * wave1)
-        
-        # Background
-        pygame.draw.rect(surface, (r, g, b), rect)
-        
-        # Draw ripple
-        center_x = rect.centerx
-        center_y = rect.centery
-        radius = int(TILE_SIZE // 4 * (1 + wave2 * 0.3))
-        pygame.draw.circle(surface, (255, 255, 255), 
-                          (center_x, center_y), radius, 1)
-        
-        # Border
-        pygame.draw.rect(surface, Color.WATER_DARK, rect, 2)
