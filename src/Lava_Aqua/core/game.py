@@ -8,7 +8,7 @@ from .level import LevelManager
 from .constants import TileType, MAX_UNDO_HISTORY
 from ..entities.player import Player
 from ..entities.lava import Lava
-from ..entities.grid import Grid
+from ..graphics.grid import Grid
 
 import pygame
 
