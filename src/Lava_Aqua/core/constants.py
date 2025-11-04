@@ -35,6 +35,8 @@ class Color:
     WALL = (169, 169, 169)
     WALL_DARK = (105, 105, 105)
     EMPTY = (40, 40, 40)
+    BOX = (160, 82, 45)
+    BOX_DARK = (110, 52, 25)
 
 # Tile types
 class TileType(Enum):
@@ -46,6 +48,7 @@ class TileType(Enum):
     PLAYER = "P"
     EXIT = "E"
     FLOOR = "."
+    BOX = "B"
 
 # Animation settings
 ANIMATION_SPEED = 0.1

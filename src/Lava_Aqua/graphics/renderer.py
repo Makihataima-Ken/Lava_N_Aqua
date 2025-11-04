@@ -27,12 +27,9 @@ class Renderer:
             game_logic: Game logic instance
             animation_time: Current animation time
         """
-        tile_grid = game_logic.get_grid()
-        if tile_grid:
-            tile_grid.draw(self.screen, 0, 0, animation_time)
-        
-        game_logic.lava.draw(self.screen, 0, 0, animation_time)
-        game_logic.player.draw(self.screen, 0, 0)
+        # tile_grid = game_logic.get_grid()
+        # if tile_grid:
+        game_logic.draw(self.screen, 0, 0, animation_time)
     
     def draw_ui_info(self, level_num: int, total_levels: int, moves: int, lava_count: int) -> None:
         """Draw UI information bar.

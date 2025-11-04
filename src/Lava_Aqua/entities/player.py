@@ -74,8 +74,8 @@ class Player:
                           (center[0] + 2, center[1] + 2), radius)
         # Main body
         pygame.draw.circle(surface, Color.PLAYER, center, radius)
-        # Highlight
-        pygame.draw.circle(surface, Color.WHITE, 
-                          (center[0] - 3, center[1] - 3), radius // 3)
+        # # Highlight
+        # pygame.draw.circle(surface, Color.WHITE, 
+        #                   (center[0] - 3, center[1] - 3), radius // 3)
         # Border
         pygame.draw.circle(surface, Color.PLAYER_DARK, center, radius, 2)

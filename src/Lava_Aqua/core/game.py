@@ -8,6 +8,7 @@ from .level import LevelManager
 from .constants import TileType, MAX_UNDO_HISTORY
 from ..entities.player import Player
 from ..entities.lava import Lava
+from ..entities.box import Box
 from ..graphics.grid import Grid
 
 import pygame
@@ -17,6 +18,7 @@ import pygame
 class GameState:
     """Represents a snapshot of the game state."""
     # grid_data: List[List[str]]
+    box_positions: List[Tuple[int, int]]
     player_pos: Tuple[int, int]
     moves: int
     lava_positions: List[Tuple[int, int]]
@@ -30,6 +32,7 @@ class GameLogic:
         self.level_manager = LevelManager()
         self.player = Player((0, 0))
         self.lava = Lava([])
+        self.boxes: List[Box] = [] # WIP
         self.grid: Optional[Grid] = None
         self.exit_pos: Tuple[int, int] = (0, 0)
         self.moves = 0
@@ -52,13 +55,32 @@ class GameLogic:
         
         for row_idx, row in enumerate(grid_data):
             for col_idx, tile in enumerate(row):
-                if tile == 'L':
+                if tile == TileType.LAVA.value: # Use 'L' for Lava
                     # Store as (x, y) which is (col, row)
                     lava_positions.append((col_idx, row_idx))
                     # Replace with empty tile
                     grid_data[row_idx][col_idx] = ' '
         
         return lava_positions
+    
+    def _extract_boxes_from_grid(self, grid_data: List[List[str]]) -> List[Tuple[int, int]]:
+        """Extract box positions from grid and replace with empty tiles."""
+        box_positions = []
+        for row_idx, row in enumerate(grid_data):
+            for col_idx, tile in enumerate(row):
+                if tile == TileType.BOX.value: # Use 'B' for Box
+                    # Store as (x, y) which is (col, row)
+                    box_positions.append((col_idx, row_idx))
+                    # Replace with empty tile
+                    grid_data[row_idx][col_idx] = ' '
+        return box_positions
+    
+    def _get_box_at(self, pos: Tuple[int, int]) -> Optional[Box]:
+        """Find if a box is at a given (x, y) position."""
+        for box in self.boxes:
+            if box.get_position() == pos:
+                return box
+        return None
     
     def load_current_level(self) -> None:
         """Load the current level."""
@@ -69,6 +91,9 @@ class GameLogic:
         
         # Extract lava positions from grid before creating Grid object
         lava_positions = self._extract_lava_from_grid(grid_data)
+        
+        # Extract boxes
+        box_positions = self._extract_boxes_from_grid(grid_data)
         
         # Create Grid object from processed grid data
         self.grid = Grid(grid_data)
@@ -84,6 +109,9 @@ class GameLogic:
         # Initialize lava with extracted positions
         self.lava.reset(lava_positions)
         
+        # Initialize boxes
+        self.boxes = [Box(pos) for pos in box_positions]
+        
         self.moves = 0
         self.history = []
         self.game_over = False
@@ -95,7 +123,8 @@ class GameLogic:
             # grid_data=self.grid.to_char_grid(),
             player_pos=self.player.get_position(),
             moves=self.moves,
-            lava_positions=list(self.lava.get_positions())
+            lava_positions=list(self.lava.get_positions()),
+            box_positions=[box.get_position() for box in self.boxes]
         )
         self.history.append(state)
         
@@ -116,6 +145,13 @@ class GameLogic:
         # self.grid = Grid(state.grid_data)
         self.player.set_position(state.player_pos)
         self.lava.set_positions(set(state.lava_positions))
+        
+        # Restore box positions. This assumes the order and number of boxes
+        # in self.boxes and state.box_positions match, which they should.
+        if len(self.boxes) == len(state.box_positions):
+            for i, pos in enumerate(state.box_positions):
+                self.boxes[i].set_position(pos)
+        
         self.moves = state.moves
         self.game_over = False
         self.level_complete = False
@@ -149,40 +185,75 @@ class GameLogic:
         return self.grid.is_walkable(x, y)
     
     def move_player(self, direction: Tuple[int, int]) -> bool:
-        """Attempt to move player.
+        """Attempt to move player and push boxes."""
         
-        Args:
-            direction: Direction tuple (dx, dy)
-            
-        Returns:
-            True if move was successful
-        """
         if self.game_over or self.level_complete:
             return False
         
-        new_pos = self.player.move(direction)
+        # 1. Determine new positions
+        current_pos = self.player.get_position()
+        dx, dy = direction
+        new_pos = (current_pos[0] + dx, current_pos[1] + dy)
+
+        # 2. Check what's at the new position
         
-        if self.can_move_to(new_pos):
-            # Save state before move
-            self.save_state()
+        # Check for walls using the grid's walkability
+        # (Assuming you optimized 'can_move_to' away)
+        if not self.grid.is_walkable(new_pos[0], new_pos[1]):
+            return False  # Can't move into a wall
+
+        # Check for a box at the new position
+        box_to_push = self._get_box_at(new_pos)
+
+        # 3. Handle the two valid move types
+        
+        move_successful = False
+
+        if box_to_push:
+            # --- CASE 1: PUSHING A BOX ---
+            
+            # Determine where the box would move
+            box_new_pos = (new_pos[0] + dx, new_pos[1] + dy)
+            
+            # Check if the box's new position is clear
+            # It must be a walkable tile AND not contain another box
+            is_box_blocked = self._get_box_at(box_new_pos) is not None
+            is_wall_blocked = not self.grid.is_walkable(box_new_pos[0], box_new_pos[1])
+
+            if not is_box_blocked and not is_wall_blocked:
+                # The push is successful!
+                self.save_state()  # Save state before moving
+                
+                # Move the box
+                box_to_push.set_position(box_new_pos)
+                
+                # Move the player
+                self.player.set_position(new_pos)
+                self.moves += 1
+                move_successful = True
+            
+            # else: Box is blocked, so player can't move. Do nothing.
+
+        else:
+            # --- CASE 2: MOVING INTO EMPTY SPACE ---
+            self.save_state()  # Save state before moving
             
             # Move player
             self.player.set_position(new_pos)
             self.moves += 1
-            
-            # Flow lava (needs to work with Grid's char representation)
-            # char_grid = self.grid.to_char_grid()
-            self.lava.update(self.grid)
-            # Update grid with new lava positions if needed
-            # (assuming lava.update modifies the grid in place)
-            # self.grid = Grid(char_grid)
+            move_successful = True
+
+        # 4. Update game state if any move happened
+        if move_successful:
+            # Update lava (using the optimized version)
+            self.lava.update(self.grid) 
             
             # Check game state
             self._check_game_state()
             
             return True
         
-        return False
+        return False # Move was blocked
     
     def _check_game_state(self) -> None:
         """Check if game is over or level is complete."""
@@ -260,5 +331,13 @@ class GameLogic:
         # Draw lava on top of tiles
         self.lava.draw(surface, offset_x, offset_y, animation_time)
         
+        # # --- DEBUG PRINT ---
+        # if not self.boxes:
+        #     print("DEBUG: self.boxes list is EMPTY")
+        
+        # 3. Draw boxes on top of lava
+        for box in self.boxes:
+            box.draw(surface, offset_x, offset_y)
+            
         # Draw player on top
         self.player.draw(surface, offset_x, offset_y)
