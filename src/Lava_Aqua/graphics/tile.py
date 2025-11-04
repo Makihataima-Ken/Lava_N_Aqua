@@ -58,6 +58,14 @@ class Tile:
         return self._tile_type in [TileType.EMPTY, TileType.FLOOR, 
                                     TileType.EXIT, TileType.WATER]
     
+    def is_flowable(self) -> bool:
+        """Check if tile can be flowed into by lava/water."""
+        return self._is_flowable()
+    
+    def _is_flowable(self) -> bool:
+        """Determine if current tile type is walkable."""
+        return self._tile_type in [TileType.EMPTY, TileType.FLOOR]
+    
     def draw(self, surface: pygame.Surface, offset_x: int, offset_y: int,
              animation_time: float = 0.0) -> None:
         """Draw tile on surface.

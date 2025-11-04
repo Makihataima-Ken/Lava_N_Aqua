@@ -3,6 +3,7 @@
 from typing import List, Tuple, Set
 import pygame
 
+from ..graphics.grid import Grid
 from ..core.constants import Color, TILE_SIZE
 
 
@@ -52,27 +53,37 @@ class Lava:
         """
         return position in self._positions
     
-    def update(self, grid: List[List[str]]) -> None:
+    def update(self, grid: Grid) -> None:
         """Update lava flow - spread to adjacent tiles.
         
         Lava spreads to adjacent empty floor tiles in all 4 directions.
         
         Args:
-            grid: 2D grid of the level
+            grid: The main Grid object, used to check for walkable tiles.
         """
         # Start with current positions
         new_positions = set(self._positions)
         
-        # Check all current lava positions
+        # Get grid dimensions once
+        grid_width = grid.get_width()
+        grid_height = grid.get_height()
+        
+        # Check all *current* lava positions
+        # Note: We iterate over self._positions, but only add to new_positions.
+        # This correctly simulates the lava spreading from its current locations.
         for x, y in self._positions:
             # Try spreading in all 4 directions
             for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
                 nx, ny = x + dx, y + dy
                 
-                # Check if new position is within bounds
-                if 0 <= ny < len(grid) and 0 <= nx < len(grid[0]):
-                    # Check if tile is empty (can flow into it)
-                    if grid[ny][nx] in (' ', '.'):
+                # --- This is the new, optimized logic ---
+                
+                # 1. Check if new position is within bounds
+                if 0 <= nx < grid_width and 0 <= ny < grid_height:
+                    
+                    # 2. Check if the tile is walkable (i.e., not a wall)
+                    # We use the grid's own method, which is much cleaner.
+                    if grid.is_flowable(nx, ny):
                         new_positions.add((nx, ny))
         
         # Update positions

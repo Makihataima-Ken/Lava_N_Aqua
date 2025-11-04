@@ -16,7 +16,7 @@ import pygame
 @dataclass
 class GameState:
     """Represents a snapshot of the game state."""
-    grid_data: List[List[str]]
+    # grid_data: List[List[str]]
     player_pos: Tuple[int, int]
     moves: int
     lava_positions: List[Tuple[int, int]]
@@ -92,7 +92,7 @@ class GameLogic:
     def save_state(self) -> None:
         """Save current state for undo."""
         state = GameState(
-            grid_data=self.grid.to_char_grid(),
+            # grid_data=self.grid.to_char_grid(),
             player_pos=self.player.get_position(),
             moves=self.moves,
             lava_positions=list(self.lava.get_positions())
@@ -113,7 +113,7 @@ class GameLogic:
             return False
         
         state = self.history.pop()
-        self.grid = Grid(state.grid_data)
+        # self.grid = Grid(state.grid_data)
         self.player.set_position(state.player_pos)
         self.lava.set_positions(set(state.lava_positions))
         self.moves = state.moves
@@ -171,11 +171,11 @@ class GameLogic:
             self.moves += 1
             
             # Flow lava (needs to work with Grid's char representation)
-            char_grid = self.grid.to_char_grid()
-            self.lava.update(char_grid)
+            # char_grid = self.grid.to_char_grid()
+            self.lava.update(self.grid)
             # Update grid with new lava positions if needed
             # (assuming lava.update modifies the grid in place)
-            self.grid = Grid(char_grid)
+            # self.grid = Grid(char_grid)
             
             # Check game state
             self._check_game_state()

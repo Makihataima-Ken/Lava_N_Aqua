@@ -2,10 +2,11 @@ import pygame
 import time
 from typing import Tuple, Optional
 from src.Lava_Aqua.core.game import GameLogic
-from src.Lava_Aqua.core.constants import TILE_SIZE
+from src.Lava_Aqua.core.constants import TILE_SIZE, GameResult
 from src.Lava_Aqua.graphics.renderer import Renderer
 from src.Lava_Aqua.input.input_handler import InputHandler
-from src.Lava_Aqua.states.state_manager import GameStateManager, GameResult
+from src.Lava_Aqua.states.state_manager import GameStateManager
+
 
 class LevelRunner:
     """Runs a single level of the game."""

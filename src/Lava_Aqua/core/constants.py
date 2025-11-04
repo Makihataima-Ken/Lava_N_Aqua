@@ -3,9 +3,9 @@
 from enum import Enum
 from pathlib import Path
 
-# Window settings
-WINDOW_WIDTH = 800
-WINDOW_HEIGHT = 600
+# # Window settings
+# WINDOW_WIDTH = 800
+# WINDOW_HEIGHT = 600
 FPS = 60
 TITLE = "Lava & Aqua"
 
@@ -28,20 +28,13 @@ class Color:
     LAVA_DARK = (200, 40, 0)
     WATER = (30, 144, 255)
     WATER_DARK = (0, 100, 200)
-    PLAYER = (0, 255, 255)
-    PLAYER_DARK = (0, 200, 200)
+    PLAYER = (255, 255, 0)
+    PLAYER_DARK = (200, 200, 0)
     EXIT = (50, 205, 50)
     EXIT_DARK = (34, 139, 34)
     WALL = (169, 169, 169)
     WALL_DARK = (105, 105, 105)
     EMPTY = (40, 40, 40)
-    
-    # UI colors
-    UI_BG = (30, 30, 40)
-    UI_TEXT = (220, 220, 220)
-    UI_HIGHLIGHT = (100, 149, 237)
-    UI_SUCCESS = (50, 205, 50)
-    UI_DANGER = (255, 69, 0)
 
 # Tile types
 class TileType(Enum):
@@ -71,15 +64,9 @@ FONTS_DIR = ASSETS_DIR / "fonts"
 MAX_UNDO_HISTORY = 50
 MOVE_ANIMATION_DURATION = 0.15  # seconds
 
-# Input keys
-class InputAction(Enum):
-    """Input action enumeration."""
-    UP = "up"
-    DOWN = "down"
-    LEFT = "left"
-    RIGHT = "right"
-    UNDO = "undo"
-    RESET = "reset"
-    QUIT = "quit"
-    NEXT_LEVEL = "next"
-    MENU = "menu"
+class GameResult(Enum):
+    """Possible outcomes of a level."""
+    WIN = 'win'
+    RESTART = 'restart'
+    QUIT = 'quit'
+    CONTINUE = 'continue'

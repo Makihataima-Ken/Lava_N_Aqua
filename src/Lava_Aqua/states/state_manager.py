@@ -1,7 +1,7 @@
 import pygame
 from src.Lava_Aqua.core.game import GameLogic
 from src.Lava_Aqua.input.input_handler import InputHandler
-from src.Lava_Aqua.states.game_result import GameResult
+from src.Lava_Aqua.core.constants import GameResult
 from src.Lava_Aqua.graphics.renderer import Renderer
 
 class GameStateManager:

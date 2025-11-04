@@ -61,6 +61,18 @@ class Grid:
         tile = self.get_tile(x, y)
         return tile.is_walkable() if tile else False
     
+    def is_flowable(self, x: int, y: int) -> bool:
+        """Check if position can be flowed into by lava/water.
+        
+        Args:
+            x: X coordinate
+            y: Y coordinate
+        Returns:
+            True if position is flowable
+        """
+        tile = self.get_tile(x, y)
+        return tile.is_flowable() if tile else False
+    
     def get_tile_type(self, x: int, y: int) -> Optional[TileType]:
         """Get tile type at position.
         

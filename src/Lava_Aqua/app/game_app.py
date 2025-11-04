@@ -3,7 +3,7 @@ import pygame
 import sys
 
 from src.Lava_Aqua.core.game import GameLogic
-from src.Lava_Aqua.states.game_result import GameResult
+from src.Lava_Aqua.core.constants import GameResult
 from src.Lava_Aqua.app.level_runner import LevelRunner
 
 class GameApplication:
