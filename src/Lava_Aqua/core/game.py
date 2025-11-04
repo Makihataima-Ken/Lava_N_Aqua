@@ -8,12 +8,15 @@ from .level import LevelManager
 from .constants import TileType, MAX_UNDO_HISTORY
 from ..entities.player import Player
 from ..entities.lava import Lava
+from ..entities.grid import Grid
+
+import pygame
 
 
 @dataclass
 class GameState:
     """Represents a snapshot of the game state."""
-    grid: List[List[str]]
+    grid_data: List[List[str]]
     player_pos: Tuple[int, int]
     moves: int
     lava_positions: List[Tuple[int, int]]
@@ -27,7 +30,7 @@ class GameLogic:
         self.level_manager = LevelManager()
         self.player = Player((0, 0))
         self.lava = Lava([])
-        self.grid: List[List[str]] = []
+        self.grid: Optional[Grid] = None
         self.exit_pos: Tuple[int, int] = (0, 0)
         self.moves = 0
         self.history: List[GameState] = []
@@ -36,24 +39,24 @@ class GameLogic:
         
         self.load_current_level()
     
-    def _extract_lava_from_grid(self, grid: List[List[str]]) -> List[Tuple[int, int]]:
+    def _extract_lava_from_grid(self, grid_data: List[List[str]]) -> List[Tuple[int, int]]:
         """Extract lava positions from grid and replace with empty tiles.
         
         Args:
-            grid: Grid to extract from (modified in place)
+            grid_data: Grid data to extract from (modified in place)
             
         Returns:
             List of lava positions as (x, y) tuples
         """
         lava_positions = []
         
-        for row_idx, row in enumerate(grid):
+        for row_idx, row in enumerate(grid_data):
             for col_idx, tile in enumerate(row):
                 if tile == 'L':
                     # Store as (x, y) which is (col, row)
                     lava_positions.append((col_idx, row_idx))
                     # Replace with empty tile
-                    grid[row_idx][col_idx] = ' '
+                    grid_data[row_idx][col_idx] = ' '
         
         return lava_positions
     
@@ -61,10 +64,14 @@ class GameLogic:
         """Load the current level."""
         level_data = self.level_manager.get_current_level()
         
-        self.grid = deepcopy(level_data.grid)
+        # Create a copy of the grid data
+        grid_data = deepcopy(level_data.grid)
         
-        # Extract lava positions from grid before setting up player
-        lava_positions = self._extract_lava_from_grid(self.grid)
+        # Extract lava positions from grid before creating Grid object
+        lava_positions = self._extract_lava_from_grid(grid_data)
+        
+        # Create Grid object from processed grid data
+        self.grid = Grid(grid_data)
         
         # Convert from (row, col) to (x, y) for player
         row, col = level_data.player_start
@@ -85,7 +92,7 @@ class GameLogic:
     def save_state(self) -> None:
         """Save current state for undo."""
         state = GameState(
-            grid=deepcopy(self.grid),
+            grid_data=self.grid.to_char_grid(),
             player_pos=self.player.get_position(),
             moves=self.moves,
             lava_positions=list(self.lava.get_positions())
@@ -106,7 +113,7 @@ class GameLogic:
             return False
         
         state = self.history.pop()
-        self.grid = state.grid
+        self.grid = Grid(state.grid_data)
         self.player.set_position(state.player_pos)
         self.lava.set_positions(set(state.lava_positions))
         self.moves = state.moves
@@ -129,17 +136,17 @@ class GameLogic:
             True if position is walkable
         """
         x, y = pos
-        height = len(self.grid)
-        width = len(self.grid[0]) if height > 0 else 0
         
-        # Out of bounds
-        if y < 0 or y >= height or x < 0 or x >= width:
+        # Check if position is within bounds using Grid
+        if not self.grid:
             return False
         
-        tile = self.grid[y][x]
+        # Out of bounds check
+        if y < 0 or y >= self.grid.get_height() or x < 0 or x >= self.grid.get_width():
+            return False
         
-        # Can walk on empty spaces, water, and exit
-        return tile in [TileType.EMPTY.value, TileType.WATER.value, TileType.EXIT.value]
+        # Use Grid's walkability check
+        return self.grid.is_walkable(x, y)
     
     def move_player(self, direction: Tuple[int, int]) -> bool:
         """Attempt to move player.
@@ -163,8 +170,12 @@ class GameLogic:
             self.player.set_position(new_pos)
             self.moves += 1
             
-            # Flow lava
-            self.lava.update(self.grid)
+            # Flow lava (needs to work with Grid's char representation)
+            char_grid = self.grid.to_char_grid()
+            self.lava.update(char_grid)
+            # Update grid with new lava positions if needed
+            # (assuming lava.update modifies the grid in place)
+            self.grid = Grid(char_grid)
             
             # Check game state
             self._check_game_state()
@@ -218,6 +229,36 @@ class GameLogic:
         Returns:
             (height, width)
         """
-        height = len(self.grid)
-        width = len(self.grid[0]) if height > 0 else 0
-        return (height, width)
+        if not self.grid:
+            return (0, 0)
+        return (self.grid.get_height(), self.grid.get_width())
+    
+    def get_grid(self) -> Optional[Grid]:
+        """Get the Grid object for rendering.
+        
+        Returns:
+            Grid object or None
+        """
+        return self.grid
+    
+    def draw(self, surface: pygame.Surface, offset_x: int = 0, 
+             offset_y: int = 0, animation_time: float = 0.0) -> None:
+        """Draw the entire game state.
+        Args:
+            surface: Pygame surface to draw on
+            offset_x: X offset for grid
+            offset_y: Y offset for grid
+            animation_time: Time for animations
+        """
+        if not self.grid:
+            print("Error: No grid available")
+            return 'quit'
+        
+        # Draw tiles first (background)
+        self.grid.draw(surface, offset_x, offset_y, animation_time)
+        
+        # Draw lava on top of tiles
+        self.lava.draw(surface, offset_x, offset_y, animation_time)
+        
+        # Draw player on top
+        self.player.draw(surface, offset_x, offset_y)
