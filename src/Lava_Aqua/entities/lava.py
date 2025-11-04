@@ -41,6 +41,12 @@ class Lava:
             position: Position as (x, y) tuple
         """
         self._positions.add(position)
+        
+    def remove_at(self, pos: Tuple[int, int]) -> None:
+        """Remove lava from a specific position."""
+        if pos in self._positions:
+            self._positions.remove(pos)
+
     
     def is_at(self, position: Tuple[int, int]) -> bool:
         """Check if lava is at given position.
@@ -53,7 +59,7 @@ class Lava:
         """
         return position in self._positions
     
-    def update(self, grid: Grid) -> None:
+    def update(self, grid: Grid,box_positions: List[Tuple[int, int]]=None) -> None:
         """Update lava flow - spread to adjacent tiles.
         
         Lava spreads to adjacent empty floor tiles in all 4 directions.
@@ -83,7 +89,7 @@ class Lava:
                     
                     # 2. Check if the tile is walkable (i.e., not a wall)
                     # We use the grid's own method, which is much cleaner.
-                    if grid.is_flowable(nx, ny):
+                    if grid.is_flowable(nx, ny) and (box_positions is None or (nx, ny) not in box_positions):
                         new_positions.add((nx, ny))
         
         # Update positions

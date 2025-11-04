@@ -227,6 +227,9 @@ class GameLogic:
                 # Move the box
                 box_to_push.set_position(box_new_pos)
                 
+                if self.lava.is_at(box_new_pos):
+                    self.lava.remove_at(box_new_pos)
+            
                 # Move the player
                 self.player.set_position(new_pos)
                 self.moves += 1
@@ -246,7 +249,7 @@ class GameLogic:
         # 4. Update game state if any move happened
         if move_successful:
             # Update lava (using the optimized version)
-            self.lava.update(self.grid) 
+            self.lava.update(self.grid, [box.get_position() for box in self.boxes])
             
             # Check game state
             self._check_game_state()
