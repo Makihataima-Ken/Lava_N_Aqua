@@ -56,10 +56,10 @@ class Tile:
     def _is_walkable(self) -> bool:
         """Determine if current tile type is walkable."""
         return self._tile_type in [TileType.EMPTY, TileType.FLOOR, 
-                                    TileType.EXIT, TileType.WATER]
+                                    TileType.EXIT, TileType.AQUA]
     
     def is_flowable(self) -> bool:
-        """Check if tile can be flowed into by lava/water."""
+        """Check if tile can be flowed into by lava/aqua."""
         return self._is_flowable()
     
     def _is_flowable(self) -> bool:

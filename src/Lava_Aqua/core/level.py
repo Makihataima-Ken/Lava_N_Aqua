@@ -15,17 +15,80 @@ class LevelData:
     grid: List[List[str]]
     width: int
     height: int
-    player_start: Tuple[int, int]
+    initial_pos: Tuple[int, int]
     exit_pos: Tuple[int, int]
     
-    def __post_init__(self) -> None:
-        """Validate level data after initialization."""
-        if not self.grid:
-            raise ValueError("Level grid cannot be empty")
-        if not self.player_start:
-            raise ValueError("Player start position not found")
-        if not self.exit_pos:
-            raise ValueError("Exit position not found")
+    lava_poses: List[Tuple[int, int]]
+    box_poses: List[Tuple[int, int]] 
+    aqua_poses: List[Tuple[int, int]]  
+    
+    def __str__(self) -> str:
+        return f"LevelData(name={self.name}, size=({self.width}x{self.height}), initial_pos={self.initial_pos}, exit_pos={self.exit_pos})"
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'LevelData':
+        """
+        Factory method to parse a raw dictionary (from JSON)
+        into a validated LevelData object.
+        """
+        name = data.get('name', 'Unnamed Level')
+        grid = [list(row) for row in data.get('grid', [])]
+        
+        if not grid:
+            raise ValueError(f"Level '{name}' grid cannot be empty")
+            
+        height = len(grid)
+        width = len(grid[0])
+        
+        initial_pos: Optional[Tuple[int, int]] = None
+        exit_pos: Optional[Tuple[int, int]] = None
+        
+        lava_poses: List[Tuple[int, int]] = []
+        box_poses: List[Tuple[int, int]] = []
+        aqua_poses: List[Tuple[int, int]] = []
+
+        for y in range(height):
+            # Ensure grid is not ragged
+            if len(grid[y]) != width:
+                raise ValueError(f"Level '{name}' has inconsistent row width")
+            for x in range(width):
+                tile = grid[y][x]
+                if tile == TileType.PLAYER.value:
+                    if initial_pos:
+                        raise ValueError(f"Level '{name}' has multiple start positions")
+                    initial_pos = (x,y)
+                    grid[y][x] = TileType.EMPTY.value
+                    
+                elif tile == TileType.EXIT.value:
+                    if exit_pos:
+                         raise ValueError(f"Level '{name}' has multiple exits")
+                    exit_pos = (x,y)
+                elif tile == TileType.LAVA.value:
+                    lava_poses.append((x,y))
+                    grid[y][x] = TileType.EMPTY.value
+                elif tile == TileType.BOX.value:
+                    box_poses.append((x,y))
+                    grid[y][x] = TileType.EMPTY.value
+                elif tile == TileType.AQUA.value:
+                    aqua_poses.append((x,y))
+                    grid[y][x] = TileType.EMPTY.value
+
+        if initial_pos is None:
+            raise ValueError(f"Level '{name}' has no player start position")
+        if exit_pos is None:
+            raise ValueError(f"Level '{name}' has no exit position")
+        
+        return cls(
+            name=name,
+            grid=grid,
+            width=width,
+            height=height,
+            initial_pos=initial_pos,
+            exit_pos=exit_pos,
+            lava_poses = lava_poses,
+            box_poses = box_poses,
+            aqua_poses = aqua_poses
+        )
 
 
 class LevelManager:
@@ -49,64 +112,64 @@ class LevelManager:
         
         if not self.levels_file.exists():
             self._create_default_levels()
+            
+    def _create_default_levels(self) -> None:
+        """Creates a placeholder default level file."""
+        default_level_data = [
+            {
+                "name": "Lava Flow",
+                "grid": [
+                    "###################",
+                    "###################",
+                    "###################",
+                    "#            ######",
+                    "#P               E#",
+                    "#            ######",
+                    "#            #    #",
+                    "##           #  L #",
+                    "###L         #    #",
+                    "###################"
+                ]
+            },
+        ]
+        try:
+            with open(self.levels_file, 'w', encoding='utf-8') as f:
+                json.dump(default_level_data, f, indent=2)
+        except IOError as e:
+            raise RuntimeError(f"Failed to create default levels file: {e}")
     
     def _load_levels(self) -> None:
-        """Load levels from JSON file."""
+        """Load levels from JSON and parse them into LevelData objects."""
         try:
             with open(self.levels_file, 'r', encoding='utf-8') as f:
-                self.levels = json.load(f)
-        except (json.JSONDecodeError, FileNotFoundError) as e:
-            raise RuntimeError(f"Failed to load levels: {e}")
+                raw_levels = json.load(f)
+                if not isinstance(raw_levels, list):
+                    raise ValueError("Levels file root must be a list")
+            
+            # Parse all levels at once
+            self.levels = [LevelData.from_dict(lvl) for lvl in raw_levels]
+            
+            if not self.levels:
+                raise ValueError("No levels found in levels file.")
+                
+        except (json.JSONDecodeError, FileNotFoundError, ValueError) as e:
+            raise RuntimeError(f"Failed to load and parse levels: {e}")
     
     def get_level_count(self) -> int:
         """Get total number of levels."""
         return len(self.levels)
     
     def load_level(self, level_index: int) -> LevelData:
-        """Load a specific level by index.
-        
-        Args:
-            level_index: Index of the level to load
-            
-        Returns:
-            LevelData object
-            
-        Raises:
-            IndexError: If level index is out of range
         """
-        if level_index < 0 or level_index >= len(self.levels):
+        Load a specific level by index.
+        This is now a fast lookup.
+        """
+        # More concise index check
+        if level_index not in range(len(self.levels)):
             raise IndexError(f"Level index {level_index} out of range")
         
-        level = self.levels[level_index]
-        grid = [list(row) for row in level['grid']]
-        height = len(grid)
-        width = len(grid[0]) if grid else 0
-        
-        # Find player and exit positions
-        player_start: Optional[Tuple[int, int]] = None
-        exit_pos: Optional[Tuple[int, int]] = None
-        
-        for y in range(height):
-            for x in range(width):
-                if grid[y][x] == TileType.PLAYER.value:
-                    player_start = (y, x)
-                    grid[y][x] = TileType.EMPTY.value
-                elif grid[y][x] == TileType.EXIT.value:
-                    exit_pos = (y, x)
-        
-        if player_start is None:
-            raise ValueError(f"Level '{level['name']}' has no player start position")
-        if exit_pos is None:
-            raise ValueError(f"Level '{level['name']}' has no exit position")
-        
-        return LevelData(
-            name=level['name'],
-            grid=grid,
-            width=width,
-            height=height,
-            player_start=player_start,
-            exit_pos=exit_pos
-        )
+        # Just return the already-parsed object
+        return self.levels[level_index]
     
     def get_current_level(self) -> LevelData:
         """Get current level data."""

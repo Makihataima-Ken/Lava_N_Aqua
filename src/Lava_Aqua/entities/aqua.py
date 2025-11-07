@@ -1,4 +1,4 @@
-"""water entity."""
+"""Aqua entity."""
 
 from typing import List, Tuple, Set
 import pygame
@@ -7,11 +7,11 @@ from ..graphics.grid import Grid
 from ..core.constants import Color, TILE_SIZE
 
 
-class Water:
-    """Water entity that flows and spreads."""
+class Aqua:
+    """Aqua entity that flows and spreads."""
     
     def __init__(self, positions: List[Tuple[int, int]]) -> None:
-        """Create a Water entity.
+        """Create a Aqua entity.
         
         Args:
             positions: List of starting positions as (x, y) tuples
@@ -19,7 +19,7 @@ class Water:
         self._positions: Set[Tuple[int, int]] = set(positions)
     
     def get_positions(self) -> Set[Tuple[int, int]]:
-        """Get all Water positions.
+        """Get all Aqua positions.
         
         Returns:
             Set of positions as (x, y) tuples
@@ -27,7 +27,7 @@ class Water:
         return self._positions.copy()
     
     def set_positions(self, positions: Set[Tuple[int, int]]) -> None:
-        """Set Water positions.
+        """Set Aqua positions.
         
         Args:
             positions: Set of positions as (x, y) tuples
@@ -35,7 +35,7 @@ class Water:
         self._positions = set(positions)
     
     def add_position(self, position: Tuple[int, int]) -> None:
-        """Add a single Water position.
+        """Add a single Aqua position.
         
         Args:
             position: Position as (x, y) tuple
@@ -43,26 +43,26 @@ class Water:
         self._positions.add(position)
         
     def remove_at(self, pos: Tuple[int, int]) -> None:
-        """Remove Water from a specific position."""
+        """Remove Aqua from a specific position."""
         if pos in self._positions:
             self._positions.remove(pos)
 
     
     def is_at(self, position: Tuple[int, int]) -> bool:
-        """Check if Water is at given position.
+        """Check if Aqua is at given position.
         
         Args:
             position: Position to check as (x, y) tuple
             
         Returns:
-            True if Water is at position
+            True if Aqua is at position
         """
         return position in self._positions
     
     def update(self, grid: Grid,box_positions: List[Tuple[int, int]]=None) -> None:
-        """Update Water flow - spread to adjacent tiles.
+        """Update Aqua flow - spread to adjacent tiles.
         
-        Water spreads to adjacent empty floor tiles in all 4 directions.
+        Aqua spreads to adjacent empty floor tiles in all 4 directions.
         
         Args:
             grid: The main Grid object, used to check for walkable tiles.
@@ -74,9 +74,9 @@ class Water:
         grid_width = grid.get_width()
         grid_height = grid.get_height()
         
-        # Check all *current* Water positions
+        # Check all *current* Aqua positions
         # Note: We iterate over self._positions, but only add to new_positions.
-        # This correctly simulates the Water spreading from its current locations.
+        # This correctly simulates the Aqua spreading from its current locations.
         for x, y in self._positions:
             # Try spreading in all 4 directions
             for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
@@ -96,7 +96,7 @@ class Water:
         self._positions = new_positions
     
     def reset(self, positions: List[Tuple[int, int]]) -> None:
-        """Reset Water to initial positions.
+        """Reset Aqua to initial positions.
         
         Args:
             positions: List of starting positions as (x, y) tuples
@@ -104,20 +104,20 @@ class Water:
         self._positions = set(positions)
     
     def clear(self) -> None:
-        """Remove all Water from the level."""
+        """Remove all Aqua from the level."""
         self._positions.clear()
     
     def count(self) -> int:
-        """Get number of Water tiles.
+        """Get number of Aqua tiles.
         
         Returns:
-            Number of tiles with Water
+            Number of tiles with Aqua
         """
         return len(self._positions)
     
     def draw(self, surface: pygame.Surface, offset_x: int, offset_y: int, 
              animation_time: float = 0.0) -> None:
-        """Draw Water on surface with animation.
+        """Draw Aqua on surface with animation.
         
         Args:
             surface: Pygame surface to draw on
@@ -137,16 +137,16 @@ class Water:
             
             rect = pygame.Rect(pixel_x, pixel_y, TILE_SIZE, TILE_SIZE)
             
-            # Animate Water color (pulsing effect)
-            base_color = Color.WATER
-            dark_color = Color.WATER_DARK
+            # Animate Aqua color (pulsing effect)
+            base_color = Color.AQUA
+            dark_color = Color.AQUA_DARK
             
             r = int(dark_color[0] + (base_color[0] - dark_color[0]) * wave)
             g = int(dark_color[1] + (base_color[1] - dark_color[1]) * wave)
             b = int(dark_color[2] + (base_color[2] - dark_color[2]) * wave)
             
-            # Draw Water tile
+            # Draw Aqua tile
             pygame.draw.rect(surface, (r, g, b), rect)
             
             # Draw border
-            pygame.draw.rect(surface, Color.WATER_DARK, rect, 2)
+            pygame.draw.rect(surface, Color.AQUA_DARK, rect, 2)

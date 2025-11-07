@@ -11,8 +11,8 @@ TITLE = "Lava & Aqua"
 
 # Grid settings
 TILE_SIZE = 40
-GRID_OFFSET_X = 50
-GRID_OFFSET_Y = 100
+# GRID_OFFSET_X = 50
+# GRID_OFFSET_Y = 100
 
 # Colors (RGB)
 class Color:
@@ -26,8 +26,8 @@ class Color:
     # Tile colors
     LAVA = (255, 69, 0)
     LAVA_DARK = (200, 40, 0)
-    WATER = (30, 144, 255)
-    WATER_DARK = (0, 100, 200)
+    AQUA = (30, 144, 255)
+    AQUA_DARK = (0, 100, 200)
     PLAYER = (255, 255, 0)
     PLAYER_DARK = (200, 200, 0)
     EXIT = (50, 205, 50)
@@ -44,24 +44,24 @@ class TileType(Enum):
     EMPTY = " "
     WALL = "#"
     LAVA = "L"
-    WATER = "W"
+    AQUA = "W"
     PLAYER = "P"
     EXIT = "E"
     FLOOR = "."
     BOX = "B"
 
-# Animation settings
-ANIMATION_SPEED = 0.1
-LAVA_ANIMATION_FRAMES = 4
-WATER_ANIMATION_FRAMES = 3
+# # Animation settings
+# ANIMATION_SPEED = 0.1
+# LAVA_ANIMATION_FRAMES = 4
+# AQUA_ANIMATION_FRAMES = 3
 
 # File paths
 BASE_DIR = Path(__file__).parent.parent.parent.parent
 ASSETS_DIR = BASE_DIR / "assets"
 LEVELS_DIR = ASSETS_DIR / "levels"
 LEVELS_FILE = LEVELS_DIR / "levels.json"
-IMAGES_DIR = ASSETS_DIR / "images"
-FONTS_DIR = ASSETS_DIR / "fonts"
+# IMAGES_DIR = ASSETS_DIR / "images"
+# FONTS_DIR = ASSETS_DIR / "fonts"
 
 # Game settings
 MAX_UNDO_HISTORY = 50
@@ -73,3 +73,16 @@ class GameResult(Enum):
     RESTART = 'restart'
     QUIT = 'quit'
     CONTINUE = 'continue'
+    
+class Direction(Enum):
+    """Movement directions."""
+    UP = (0, -1)
+    DOWN = (0, 1)
+    LEFT = (-1, 0)
+    RIGHT = (1, 0)
+    
+class Action(Enum):
+    """Player actions."""
+    RESET = 'reset'
+    UNDO = 'undo'
+    QUIT = 'quit'

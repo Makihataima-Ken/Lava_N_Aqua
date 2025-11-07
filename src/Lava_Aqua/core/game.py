@@ -5,12 +5,12 @@ from dataclasses import dataclass
 from copy import deepcopy
 
 from .level import LevelManager
-from .constants import TileType, MAX_UNDO_HISTORY
+from .constants import TileType, MAX_UNDO_HISTORY, Direction
 from ..entities.player import Player
 from ..entities.lava import Lava
 from ..entities.box import Box
 from ..graphics.grid import Grid
-from ..entities.water import Water
+from ..entities.aqua import Aqua
 
 import pygame
 
@@ -19,11 +19,11 @@ import pygame
 class GameState:
     """Represents a snapshot of the game state."""
     # grid_data: List[List[str]]
-    box_positions: List[Tuple[int, int]]
     player_pos: Tuple[int, int]
-    moves: int
+    box_positions: List[Tuple[int, int]]
     lava_positions: List[Tuple[int, int]]
-    water_positions: List[Tuple[int, int]]
+    aqua_positions: List[Tuple[int, int]]
+    moves: int
 
 
 class GameLogic:
@@ -34,7 +34,7 @@ class GameLogic:
         self.level_manager = LevelManager()
         self.player = Player((0, 0))
         self.lava = Lava([])
-        self.water = Water([]) # WIP
+        self.aqua = Aqua([]) # WIP
         self.boxes: List[Box] = [] # WIP
         self.grid: Optional[Grid] = None
         self.exit_pos: Tuple[int, int] = (0, 0)
@@ -43,28 +43,7 @@ class GameLogic:
         self.game_over = False
         self.level_complete = False
         
-        self.load_current_level()
-    
-    def _extract_entity_from_grid(self, grid_data: List[List[str]], symbol:str) -> List[Tuple[int, int]]:
-        """Extract entity positions from grid and replace with empty tiles
-
-        Args:
-            grid_data (List[List[str]]): Grid data to extract from (modified in place)
-            symbol (str): entity type
-
-        Returns:
-            List[Tuple[int, int]]: List of entity positions as (x, y) tuples
-        """
-        positions= []
-        for row_idx, row in enumerate(grid_data):
-            for col_idx, tile in enumerate(row):
-                if tile == symbol: # Use 'B' for Box
-                    # Store as (x, y) which is (col, row)
-                    positions.append((col_idx, row_idx))
-                    # Replace with empty tile
-                    grid_data[row_idx][col_idx] = ' '
-        return positions
-        
+        self.load_current_level()    
     
     def _get_box_at(self, pos: Tuple[int, int]) -> Optional[Box]:
         """Find if a box is at a given (x, y) position."""
@@ -80,32 +59,20 @@ class GameLogic:
         # Create a copy of the grid data
         grid_data = deepcopy(level_data.grid)
         
-        # Extract lava positions from grid before creating Grid object
-        lava_positions = self._extract_entity_from_grid(grid_data,'L')
-        
-        # Extract boxes
-        box_positions = self._extract_entity_from_grid(grid_data,'B')
-        
-        water_positions =self._extract_entity_from_grid(grid_data,'W')
-        
         # Create Grid object from processed grid data
         self.grid = Grid(grid_data)
         
-        # Convert from (row, col) to (x, y) for player
-        row, col = level_data.player_start
-        self.player.set_position((col, row))
+        self.player.set_position(level_data.initial_pos)
         
-        # Convert exit position from (row, col) to (x, y)
-        exit_row, exit_col = level_data.exit_pos
-        self.exit_pos = (exit_col, exit_row)
+        self.exit_pos = (level_data.exit_pos)
         
         # Initialize lava with extracted positions
-        self.lava.reset(lava_positions)
+        self.lava.reset(level_data.lava_poses)
         
         # Initialize boxes
-        self.boxes = [Box(pos) for pos in box_positions]
+        self.boxes = [Box(pos) for pos in level_data.box_poses]
         
-        self.water.reset(water_positions)
+        self.aqua.reset(level_data.aqua_poses)
         
         self.moves = 0
         self.history = []
@@ -117,10 +84,10 @@ class GameLogic:
         state = GameState(
             # grid_data=self.grid.to_char_grid(),
             player_pos=self.player.get_position(),
-            moves=self.moves,
             lava_positions=list(self.lava.get_positions()),
             box_positions=[box.get_position() for box in self.boxes],
-            water_positions = list(self.water.get_positions())
+            aqua_positions = list(self.aqua.get_positions()),
+            moves=self.moves
         )
         self.history.append(state)
         
@@ -141,13 +108,10 @@ class GameLogic:
         # self.grid = Grid(state.grid_data)
         self.player.set_position(state.player_pos)
         self.lava.set_positions(set(state.lava_positions))
-        self.water.set_positions(set(state.water_positions))
-        
-        # Restore box positions. This assumes the order and number of boxes
-        # in self.boxes and state.box_positions match, which they should.
-        if len(self.boxes) == len(state.box_positions):
-            for i, pos in enumerate(state.box_positions):
-                self.boxes[i].set_position(pos)
+        self.aqua.set_positions(set(state.aqua_positions))
+            
+        for i, pos in enumerate(state.box_positions):
+            self.boxes[i].set_position(pos)
         
         self.moves = state.moves
         self.game_over = False
@@ -181,22 +145,22 @@ class GameLogic:
         # Use Grid's walkability check
         return self.grid.is_walkable(x, y)
     
-    def move_player(self, direction: Tuple[int, int]) -> bool:
+    def move_player(self, direction: Direction) -> bool:
         """Attempt to move player and push boxes."""
         
         if self.game_over or self.level_complete:
             return False
         
         # 1. Determine new positions
+        dx, dy = direction.value
         current_pos = self.player.get_position()
-        dx, dy = direction
         new_pos = (current_pos[0] + dx, current_pos[1] + dy)
 
         # 2. Check what's at the new position
         
         # Check for walls using the grid's walkability
         # (Assuming you optimized 'can_move_to' away)
-        if not self.grid.is_walkable(new_pos[0], new_pos[1]):
+        if not self.can_move_to(new_pos):
             return False  # Can't move into a wall
 
         # Check for a box at the new position
@@ -248,9 +212,9 @@ class GameLogic:
             # Update lava (using the optimized version)
             self.lava.update(self.grid, [box.get_position() for box in self.boxes])
             
-            self.water.update(self.grid, [box.get_position() for box in self.boxes])
+            self.aqua.update(self.grid, [box.get_position() for box in self.boxes])
             
-            self._handle_lava_water_collisions()
+            self._handle_lava_aqua_collisions()
             
             # Check game state
             self._check_game_state()
@@ -259,16 +223,16 @@ class GameLogic:
         
         return False # Move was blocked
     
-    def _handle_lava_water_collisions(self) -> None:
-        """Turn tiles where lava and water collide into walls."""
+    def _handle_lava_aqua_collisions(self) -> None:
+        """Turn tiles where lava and aqua collide into walls."""
         lava_positions = set(self.lava.get_positions())
-        water_positions = set(self.water.get_positions())
-        collisions = lava_positions & water_positions  # intersection
+        aqua_positions = set(self.aqua.get_positions())
+        collisions = lava_positions & aqua_positions  # intersection
 
         for (x, y) in collisions:
-            # 1. Remove lava and water
+            # 1. Remove lava and aqua
             self.lava.remove_at((x, y))
-            self.water.remove_at((x, y))
+            self.aqua.remove_at((x, y))
 
             # 2. Turn this tile into a wall in the grid
             if self.grid:
@@ -351,7 +315,7 @@ class GameLogic:
         # Draw lava on top of tiles
         self.lava.draw(surface, offset_x, offset_y, animation_time)
         
-        self.water.draw(surface, offset_x, offset_y, animation_time) # WIP
+        self.aqua.draw(surface, offset_x, offset_y, animation_time) # WIP
         
         # # --- DEBUG PRINT ---
         # if not self.boxes:

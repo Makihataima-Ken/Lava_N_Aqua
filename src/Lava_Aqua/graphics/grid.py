@@ -62,7 +62,7 @@ class Grid:
         return tile.is_walkable() if tile else False
     
     def is_flowable(self, x: int, y: int) -> bool:
-        """Check if position can be flowed into by lava/water.
+        """Check if position can be flowed into by lava/aqua.
         
         Args:
             x: X coordinate
@@ -130,8 +130,7 @@ class Grid:
             ' ': TileType.EMPTY,
             '#': TileType.WALL,
             'E': TileType.EXIT,
-            '.': TileType.FLOOR,
-            'W': TileType.WATER,
+            # '.': TileType.FLOOR,
         }
         return char_map.get(char, TileType.EMPTY)
     
