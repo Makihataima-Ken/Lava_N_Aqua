@@ -2,7 +2,7 @@ import pygame
 import time
 from typing import Tuple, Optional
 from src.Lava_Aqua.core.game import GameLogic
-from src.Lava_Aqua.core.constants import TILE_SIZE, GameResult, Action
+from src.Lava_Aqua.core.constants import TILE_SIZE, GameResult
 from src.Lava_Aqua.graphics.renderer import Renderer
 from src.Lava_Aqua.input.input_handler import InputHandler
 from src.Lava_Aqua.states.state_manager import GameStateManager
@@ -61,13 +61,13 @@ class LevelRunner:
             # Handle input
             movement, action = self.input_handler.process_events()
             
-            if action == Action.QUIT:
+            if action == 'quit':
                 return GameResult.QUIT
-            elif action == Action.RESET:
+            elif action == 'reset':
                 self.game_logic.reset_level()
                 print(f"Level reset! (Moves: {self.game_logic.moves})")
                 continue
-            elif action == Action.UNDO:
+            elif action == 'undo':
                 if self.game_logic.undo():
                     print(f"Undo! (Moves: {self.game_logic.moves})")
             elif movement:

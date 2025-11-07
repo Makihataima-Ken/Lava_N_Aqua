@@ -20,7 +20,8 @@ class LevelData:
     
     lava_poses: List[Tuple[int, int]]
     box_poses: List[Tuple[int, int]] 
-    aqua_poses: List[Tuple[int, int]]  
+    aqua_poses: List[Tuple[int, int]]
+    exit_keys_poses: List[Tuple[int, int]] = None  
     
     def __str__(self) -> str:
         return f"LevelData(name={self.name}, size=({self.width}x{self.height}), initial_pos={self.initial_pos}, exit_pos={self.exit_pos})"
@@ -46,6 +47,7 @@ class LevelData:
         lava_poses: List[Tuple[int, int]] = []
         box_poses: List[Tuple[int, int]] = []
         aqua_poses: List[Tuple[int, int]] = []
+        exit_keys_poses: List[Tuple[int, int]] = []
 
         for y in range(height):
             # Ensure grid is not ragged
@@ -72,6 +74,8 @@ class LevelData:
                 elif tile == TileType.AQUA.value:
                     aqua_poses.append((x,y))
                     grid[y][x] = TileType.EMPTY.value
+                elif tile == TileType.Key.value:
+                    exit_keys_poses.append((x,y)) 
 
         if initial_pos is None:
             raise ValueError(f"Level '{name}' has no player start position")
@@ -87,7 +91,8 @@ class LevelData:
             exit_pos=exit_pos,
             lava_poses = lava_poses,
             box_poses = box_poses,
-            aqua_poses = aqua_poses
+            aqua_poses = aqua_poses,
+            exit_keys_poses = exit_keys_poses
         )
 
 

@@ -7,7 +7,7 @@ class InputHandler:
     """Handles all keyboard input."""
     
     @staticmethod
-    def process_events() -> Tuple[Optional[Direction], Optional[Action]]:
+    def process_events() -> Tuple[Optional[Direction], Optional[str]]:
         """Process pygame events.
         
         Returns:
@@ -17,7 +17,7 @@ class InputHandler:
         """
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                return None, Action.QUIT
+                return None, 'quit'
             
             elif event.type == pygame.KEYDOWN:
                 # Movement keys
@@ -32,10 +32,10 @@ class InputHandler:
                 
                 # Action keys
                 elif event.key == pygame.K_r:
-                    return None, Action.RESET
+                    return None, 'reset'
                 elif event.key in (pygame.K_u, pygame.K_z):
-                    return None, Action.UNDO
+                    return None, 'undo'
                 elif event.key == pygame.K_ESCAPE:
-                    return None, Action.QUIT
+                    return None, 'quit'
         
         return None, None

@@ -35,6 +35,7 @@ class Color:
     WALL = (169, 169, 169)
     WALL_DARK = (105, 105, 105)
     EMPTY = (40, 40, 40)
+    EMPTY_DARK = (20, 20, 20)
     BOX = (160, 82, 45)
     BOX_DARK = (110, 52, 25)
 
@@ -47,8 +48,8 @@ class TileType(Enum):
     AQUA = "W"
     PLAYER = "P"
     EXIT = "E"
-    FLOOR = "."
     BOX = "B"
+    Key = "K"
 
 # # Animation settings
 # ANIMATION_SPEED = 0.1
@@ -59,7 +60,7 @@ class TileType(Enum):
 BASE_DIR = Path(__file__).parent.parent.parent.parent
 ASSETS_DIR = BASE_DIR / "assets"
 LEVELS_DIR = ASSETS_DIR / "levels"
-LEVELS_FILE = LEVELS_DIR / "levels.json"
+LEVELS_FILE = LEVELS_DIR / "test.json"
 # IMAGES_DIR = ASSETS_DIR / "images"
 # FONTS_DIR = ASSETS_DIR / "fonts"
 

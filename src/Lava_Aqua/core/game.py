@@ -23,6 +23,7 @@ class GameState:
     box_positions: List[Tuple[int, int]]
     lava_positions: List[Tuple[int, int]]
     aqua_positions: List[Tuple[int, int]]
+    exit_keys_positions: List[Tuple[int, int]]
     moves: int
 
 
@@ -38,6 +39,7 @@ class GameLogic:
         self.boxes: List[Box] = [] # WIP
         self.grid: Optional[Grid] = None
         self.exit_pos: Tuple[int, int] = (0, 0)
+        self.exit_keys_positions: List[Tuple[int, int]] = []
         self.moves = 0
         self.history: List[GameState] = []
         self.game_over = False
@@ -66,6 +68,8 @@ class GameLogic:
         
         self.exit_pos = (level_data.exit_pos)
         
+        self.exit_keys_positions = level_data.exit_keys_poses
+        
         # Initialize lava with extracted positions
         self.lava.reset(level_data.lava_poses)
         
@@ -87,6 +91,7 @@ class GameLogic:
             lava_positions=list(self.lava.get_positions()),
             box_positions=[box.get_position() for box in self.boxes],
             aqua_positions = list(self.aqua.get_positions()),
+            exit_keys_positions = list(self.exit_keys_positions),
             moves=self.moves
         )
         self.history.append(state)
@@ -155,73 +160,81 @@ class GameLogic:
         dx, dy = direction.value
         current_pos = self.player.get_position()
         new_pos = (current_pos[0] + dx, current_pos[1] + dy)
-
-        # 2. Check what's at the new position
-        
-        # Check for walls using the grid's walkability
-        # (Assuming you optimized 'can_move_to' away)
+        # 2. Check if move is valid
         if not self.can_move_to(new_pos):
             return False  # Can't move into a wall
 
         # Check for a box at the new position
         box_to_push = self._get_box_at(new_pos)
 
-        # 3. Handle the two valid move types
-        
+        # 3. Handle the two valid move types  
         move_successful = False
 
         if box_to_push:
-            # --- CASE 1: PUSHING A BOX ---
-            
-            # Determine where the box would move
-            box_new_pos = (new_pos[0] + dx, new_pos[1] + dy)
-            
-            # Check if the box's new position is clear
-            # It must be a walkable tile AND not contain another box
-            is_box_blocked = self._get_box_at(box_new_pos) is not None
-            is_wall_blocked = not self.grid.is_walkable(box_new_pos[0], box_new_pos[1])
-
-            if not is_box_blocked and not is_wall_blocked:
-                # The push is successful!
-                self.save_state()  # Save state before moving
-                
-                # Move the box
-                box_to_push.set_position(box_new_pos)
-                
-                if self.lava.is_at(box_new_pos):
-                    self.lava.remove_at(box_new_pos)
-            
-                # Move the player
-                self.player.set_position(new_pos)
-                self.moves += 1
-                move_successful = True
-            
-            # else: Box is blocked, so player can't move. Do nothing.
-
+            move_successful = self._handle_box_push(box_to_push, new_pos, direction)
         else:
-            # --- CASE 2: MOVING INTO EMPTY SPACE ---
-            self.save_state()  # Save state before moving
-            
-            # Move player
-            self.player.set_position(new_pos)
-            self.moves += 1
-            move_successful = True
+            move_successful = self._handle_empty_space_move(new_pos)
 
         # 4. Update game state if any move happened
         if move_successful:
-            # Update lava (using the optimized version)
-            self.lava.update(self.grid, [box.get_position() for box in self.boxes])
-            
-            self.aqua.update(self.grid, [box.get_position() for box in self.boxes])
-            
-            self._handle_lava_aqua_collisions()
-            
-            # Check game state
-            self._check_game_state()
-            
-            return True
+            self._update_game_state() 
+            # return True
         
         return False # Move was blocked
+    
+    def _handle_box_push(self, box_to_push, box_pos: Tuple[int, int], direction: Direction) -> bool:
+        """Handle pushing a box. Returns True if successful."""
+        # Calculate where the box would move
+        dx, dy = direction.value
+        box_new_pos = (box_pos[0] + dx, box_pos[1] + dy)
+        
+        # Check if the box can be pushed
+        if not self._can_push_box(box_new_pos):
+            return False
+        
+        # Execute the push
+        self._execute_box_push(box_to_push, box_pos, box_new_pos)
+        return True
+    
+    def _can_push_box(self, box_new_pos: Tuple[int, int]) -> bool:
+        """Check if a box can be pushed to the new position."""
+        is_box_blocked = self._get_box_at(box_new_pos) is not None
+        is_wall_blocked = not self.grid.is_walkable(box_new_pos[0], box_new_pos[1])
+        return not is_box_blocked and not is_wall_blocked
+
+    def _execute_box_push(self, box_to_push, player_new_pos: Tuple[int, int], box_new_pos: Tuple[int, int]):
+        """Execute the box push and player movement."""
+        self.save_state()  # Save state before moving
+        
+        # Move the box
+        box_to_push.set_position(box_new_pos)
+        
+        # Handle box landing on lava
+        if self.lava.is_at(box_new_pos):
+            self.lava.remove_at(box_new_pos)
+        
+        # Move the player
+        self.player.set_position(player_new_pos)
+        self.moves += 1
+
+    def _handle_empty_space_move(self, new_pos: Tuple[int, int]) -> bool:
+        """Handle moving into empty space. Returns True if successful."""
+        self.save_state()  # Save state before moving
+        self.player.set_position(new_pos)
+        self.moves += 1
+        return True
+
+    def _update_game_state(self) -> None:
+        """Update game state after a successful move."""
+        
+        self.lava.update(self.grid, [box.get_position() for box in self.boxes])
+            
+        self.aqua.update(self.grid, [box.get_position() for box in self.boxes])
+            
+        self._handle_lava_aqua_collisions()
+            
+        # Check game state
+        self._check_game_state()
     
     def _handle_lava_aqua_collisions(self) -> None:
         """Turn tiles where lava and aqua collide into walls."""
@@ -243,13 +256,18 @@ class GameLogic:
         """Check if game is over or level is complete."""
         player_pos = self.player.get_position()
         
+        if player_pos in self.exit_keys_positions:
+            self.grid.set_tile_type(player_pos[0], player_pos[1], TileType.EMPTY)
+            self.exit_keys_positions.remove(player_pos)
+        
         # Check if player reached exit
-        if player_pos == self.exit_pos:
+        if player_pos == self.exit_pos and not self.exit_keys_positions:
             self.level_complete = True
         
         # Check if player is on lava
         if self.lava.is_at(player_pos):
             self.game_over = True
+            
     
     def next_level(self) -> bool:
         """Move to next level.
@@ -261,6 +279,11 @@ class GameLogic:
             self.load_current_level()
             return True
         return False
+    
+    
+    
+    
+    # Helper methods
     
     def get_level_name(self) -> str:
         """Get current level name."""

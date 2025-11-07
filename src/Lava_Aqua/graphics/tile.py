@@ -55,8 +55,7 @@ class Tile:
     
     def _is_walkable(self) -> bool:
         """Determine if current tile type is walkable."""
-        return self._tile_type in [TileType.EMPTY, TileType.FLOOR, 
-                                    TileType.EXIT, TileType.AQUA]
+        return self._tile_type in [TileType.EMPTY, TileType.EXIT, TileType.Key]
     
     def is_flowable(self) -> bool:
         """Check if tile can be flowed into by lava/aqua."""
@@ -64,7 +63,7 @@ class Tile:
     
     def _is_flowable(self) -> bool:
         """Determine if current tile type is walkable."""
-        return self._tile_type in [TileType.EMPTY, TileType.FLOOR]
+        return self._tile_type in [TileType.EMPTY, TileType.Key]
     
     def draw(self, surface: pygame.Surface, offset_x: int, offset_y: int,
              animation_time: float = 0.0) -> None:
@@ -85,38 +84,36 @@ class Tile:
             self._draw_wall(surface, rect)
         elif self._tile_type == TileType.EXIT:
             self._draw_exit(surface, rect, animation_time)
-        elif self._tile_type == TileType.FLOOR:
-            self._draw_floor(surface, rect)
+        elif self._tile_type == TileType.Key:
+            self._draw_key(surface, rect,pixel_x,pixel_y,animation_time)
         else:  # EMPTY
             self._draw_empty(surface, rect)
     
     def _draw_empty(self, surface: pygame.Surface, rect: pygame.Rect) -> None:
         """Draw empty tile."""
         pygame.draw.rect(surface, Color.EMPTY, rect)
-        pygame.draw.rect(surface, (150, 150, 150), rect, 1)
-    
-    def _draw_floor(self, surface: pygame.Surface, rect: pygame.Rect) -> None:
-        """Draw floor tile."""
-        pygame.draw.rect(surface, (180, 180, 180), rect)
-        pygame.draw.rect(surface, (140, 140, 140), rect, 1)
+        pygame.draw.rect(surface, Color.EMPTY_DARK, rect, 1)
+        
+    def _draw_key(self, surface: pygame.Surface, rect: pygame.Rect,pixel_x:int,pixel_y:int,animation_time: float) -> None:
+        """Draw key tile."""
+        center = (pixel_x + TILE_SIZE // 2, pixel_y + TILE_SIZE // 2)
+        radius = TILE_SIZE // 5 
+        
+        # Animate glow
+        glow = abs(math.sin(animation_time * 2)) * 0.3 + 0.7
+        
+        base_color = Color.EXIT
+        r = int(base_color[0] * glow)
+        g = int(base_color[1] * glow)
+        b = int(base_color[2] * glow)
+        
+        self._draw_empty(surface, rect)
+        pygame.draw.circle(surface, (r,g,b),center,radius)
     
     def _draw_wall(self, surface: pygame.Surface, rect: pygame.Rect) -> None:
         """Draw wall tile with 3D effect."""
         # Main wall
         pygame.draw.rect(surface, Color.WALL, rect)
-        
-        # Highlight (top-left)
-        pygame.draw.line(surface, (150, 150, 150), 
-                        rect.topleft, rect.topright, 2)
-        pygame.draw.line(surface, (150, 150, 150), 
-                        rect.topleft, rect.bottomleft, 2)
-        
-        # Shadow (bottom-right)
-        pygame.draw.line(surface, (50, 50, 50), 
-                        rect.bottomleft, rect.bottomright, 2)
-        pygame.draw.line(surface, (50, 50, 50), 
-                        rect.topright, rect.bottomright, 2)
-        
         # Border
         pygame.draw.rect(surface, Color.WALL_DARK, rect, 1)
     

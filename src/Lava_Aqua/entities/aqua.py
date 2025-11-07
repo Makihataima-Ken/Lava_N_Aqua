@@ -4,7 +4,7 @@ from typing import List, Tuple, Set
 import pygame
 
 from ..graphics.grid import Grid
-from ..core.constants import Color, TILE_SIZE
+from ..core.constants import Color, TILE_SIZE, TileType
 
 
 class Aqua:
@@ -89,7 +89,7 @@ class Aqua:
                     
                     # 2. Check if the tile is walkable (i.e., not a wall)
                     # We use the grid's own method, which is much cleaner.
-                    if grid.is_flowable(nx, ny) and (box_positions is None or (nx, ny) not in box_positions):
+                    if grid.is_flowable(nx, ny) and (box_positions is None or (nx, ny) not in box_positions) and grid.get_tile_type(nx, ny)!=TileType.Key:
                         new_positions.add((nx, ny))
         
         # Update positions

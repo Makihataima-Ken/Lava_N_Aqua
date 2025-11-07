@@ -130,7 +130,7 @@ class Grid:
             ' ': TileType.EMPTY,
             '#': TileType.WALL,
             'E': TileType.EXIT,
-            # '.': TileType.FLOOR,
+            'K': TileType.Key,
         }
         return char_map.get(char, TileType.EMPTY)
     
