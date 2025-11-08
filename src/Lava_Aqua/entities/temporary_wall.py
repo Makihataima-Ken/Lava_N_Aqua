@@ -92,30 +92,16 @@ class TemporaryWall:
         screen_x = x * TILE_SIZE + offset_x
         screen_y = y * TILE_SIZE + offset_y
         
-        # Calculate opacity based on remaining duration
-        # opacity_ratio = self._remaining_duration / self._initial_duration
-        
-        # # Warn when about to expire (blink effect)
-        # if self._remaining_duration <= 3:
-        #     blink = abs(math.sin(animation_time * 5)) > 0.5
-        #     if not blink:
-        #         opacity_ratio *= 0.3
-        
-        # Draw wall with fading effect
-        # base_alpha = int(200 * opacity_ratio)
-        wall_color = Color.GRAY
+        wall_color = Color.Temp_WALL
         
         # Create surface with alpha
         temp_surface = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA)
         
-        # Draw striped pattern to indicate temporary
-        stripe_width = 4
-        for i in range(0, TILE_SIZE, stripe_width * 2):
-            pygame.draw.rect(temp_surface, wall_color,
-                           (i, 0, stripe_width, TILE_SIZE))
         
+        pygame.draw.rect(temp_surface, wall_color,
+                         (0, 0, TILE_SIZE, TILE_SIZE))
         # Draw border
-        pygame.draw.rect(temp_surface, Color.LIGHT_GRAY,
+        pygame.draw.rect(temp_surface, Color.Temp_WALL_DARK,
                         (0, 0, TILE_SIZE, TILE_SIZE), 2)
         
         surface.blit(temp_surface, (screen_x, screen_y))

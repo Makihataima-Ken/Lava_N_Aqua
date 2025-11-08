@@ -55,7 +55,7 @@ class Tile:
     
     def _is_walkable(self) -> bool:
         """Determine if current tile type is walkable."""
-        return self._tile_type in [TileType.EMPTY, TileType.EXIT, TileType.Key]
+        return self._tile_type in [TileType.EMPTY, TileType.EXIT, TileType.Key, TileType.Dark_Wall]
     
     def is_flowable(self) -> bool:
         """Check if tile can be flowed into by lava/aqua."""
@@ -63,7 +63,7 @@ class Tile:
     
     def _is_flowable(self) -> bool:
         """Determine if current tile type is walkable."""
-        return self._tile_type in [TileType.EMPTY, TileType.Key]
+        return self._tile_type in [TileType.EMPTY, TileType.Key, TileType.Semi_Wall]
     
     def draw(self, surface: pygame.Surface, offset_x: int, offset_y: int,
              animation_time: float = 0.0) -> None:
@@ -86,6 +86,10 @@ class Tile:
             self._draw_exit(surface, rect, animation_time)
         elif self._tile_type == TileType.Key:
             self._draw_key(surface, rect,pixel_x,pixel_y,animation_time)
+        elif self._tile_type == TileType.Semi_Wall:
+            self._draw_semi_wall(surface, rect)
+        elif self._tile_type == TileType.Dark_Wall:
+            self._draw_dark_wall(surface, rect)
         else:  # EMPTY
             self._draw_empty(surface, rect)
     
@@ -116,6 +120,47 @@ class Tile:
         pygame.draw.rect(surface, Color.WALL, rect)
         # Border
         pygame.draw.rect(surface, Color.WALL_DARK, rect, 1)
+        
+    def _draw_semi_wall(self, surface: pygame.Surface, rect: pygame.Rect) -> None:
+        """Draw semi-wall tile."""
+        # Main semi-wall
+        pygame.draw.rect(surface, Color.EMPTY, rect)
+        # Border
+        pygame.draw.rect(surface, Color.EMPTY_DARK, rect, 1)
+
+        # --- Add small rects to corners ---
+
+        # 1. Define the size and color of the corner rects
+        corner_size = 14  # You can adjust this 4x4 pixel size
+        corner_color = Color.WALL  # Match the border, or use Color.RED etc.
+
+        # 2. Create a single rect to reuse for all corners
+        corner_rect = pygame.Rect(0, 0, corner_size, corner_size)
+
+        # 3. Move and draw the rect for each corner
+        
+        # Top-left
+        corner_rect.topleft = rect.topleft
+        pygame.draw.rect(surface, corner_color, corner_rect)
+
+        # Top-right
+        corner_rect.topright = rect.topright
+        pygame.draw.rect(surface, corner_color, corner_rect)
+
+        # Bottom-left
+        corner_rect.bottomleft = rect.bottomleft
+        pygame.draw.rect(surface, corner_color, corner_rect)
+
+        # Bottom-right
+        corner_rect.bottomright = rect.bottomright
+        pygame.draw.rect(surface, corner_color, corner_rect)
+    
+    def _draw_dark_wall(self, surface: pygame.Surface, rect: pygame.Rect) -> None:
+        """Draw dark-wall tile."""
+        # Main dark-wall
+        pygame.draw.rect(surface, Color.BLACK, rect)
+        # Border
+        pygame.draw.rect(surface, Color.WHITE, rect, 1)
     
     def _draw_exit(self, surface: pygame.Surface, rect: pygame.Rect,
                    animation_time: float) -> None:

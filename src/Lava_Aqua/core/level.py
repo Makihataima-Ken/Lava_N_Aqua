@@ -18,7 +18,6 @@ class LevelData:
     width: int
     height: int
     exit_pos: Tuple[int, int]
-    exit_keys_poses: List[Tuple[int, int]]  
     
     # initial dynamic data
     initial_pos: Tuple[int, int]
@@ -26,6 +25,7 @@ class LevelData:
     box_poses: List[Tuple[int, int]] 
     aqua_poses: List[Tuple[int, int]]
     
+    exit_keys_poses: List[Tuple[int, int]]  
     temp_walls: Optional[List[Dict[str, Any]]] = None 
     
     def __str__(self) -> str:

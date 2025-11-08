@@ -274,13 +274,8 @@ class GameLogic:
         return True
 
     def _update_game_state(self) -> None:
-        # Update temporary walls (decrease duration)
-        for wall in self.temp_walls:
-            wall.update()
-        
-        # Remove expired walls (NEW)
-        # self.temp_walls = [w for w in self.temp_walls if not w.is_expired()]
-        
+        """Update game state after a move."""
+                
         # Update lava (with temp wall blocking)
         self.lava.update(
             self.grid, 
@@ -295,6 +290,11 @@ class GameLogic:
             [wall.get_position() for wall in self.temp_walls if wall.is_blocking()]
         )
         self._handle_lava_aqua_collisions()
+        
+        # Update temporary walls (decrease duration)
+        for wall in self.temp_walls:
+            wall.update()
+            
         self._check_game_state()
     
     def _handle_lava_aqua_collisions(self) -> None:

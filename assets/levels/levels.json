@@ -215,5 +215,139 @@
                     {"position": [13,8], "duration": 40},
                     {"position": [13,9], "duration": 40}
                 ]
+            },
+             {
+                "name": "The Castle",
+                "grid": [
+                    "################",
+                    "# #LLLLLLLLLL# #",
+                    "# #LLLLKKLLLL# #",
+                    "# #LLBBBBBBLL# #",
+                    "# #LLB    BLL# #",
+                    "# #LLB    BLL# #",
+                    "#W#LKB PE BKL#W#",
+                    "# #LLB    BLL# #",
+                    "# #LLB    BLL# #",
+                    "# #LLBBBBBBLL# #",
+                    "# #LLLLKKLLLL# #",
+                    "# #LLLLLLLLLL# #",
+                    "################"
+                ]
+            },
+                {
+                "name": "one way",
+                "grid": [
+                    "################",
+                    "#K      K#   #L#",
+                    "#        # # #L#",
+                    "#     B  # # #L#",
+                    "#        # # #L#",
+                    "#E  B P S  # #L#",
+                    "#        ### #L#",
+                    "#     B  #   #S#",
+                    "#        # ### #",
+                    "#K      K#     #",
+                    "################"
+                ]
+            },
+            {
+                "name": "Dizzler",
+                "grid": [
+                    "################",
+                    "#   #       #W##",
+                    "# E #     B #T##",
+                    "#   #          #",
+                    "# ####S        #",
+                    "# TLT   T  P   #",
+                    "# ####S        #",
+                    "#   #          #",
+                    "#   T     B    #",
+                    "#   #          #",
+                    "################"
+                ],
+                "temp_walls":[
+                    {"position": [13,2], "duration": 13},
+
+                    {"position": [2,5], "duration": 34},
+                    {"position": [4,5], "duration": 28},
+                    {"position": [8,5], "duration": 28},
+
+                    {"position": [4,8], "duration": 34}
+
+                ]
+            },
+            {
+                "name": "Rough patch",
+                "grid": [
+                    "################",
+                    "#KT         TE##",
+                    "### P     B ####",
+                    "# #   #T#   # ##",
+                    "# #  ##S##  # ##",
+                    "# #  TSLST  # ##",
+                    "# #  ##S##  # ##",
+                    "# #   #T#   # ##",
+                    "# # B       # ##",
+                    "#W#         #W##",
+                    "################"
+                ],
+                "temp_walls":[
+                    {"position": [2,1], "duration": 32},
+                    {"position": [12,1], "duration": 32},
+
+                    {"position": [7,3], "duration": 32},
+                    {"position": [5,5], "duration": 32},
+                    {"position": [9,5], "duration": 32},
+                    {"position": [7,7], "duration": 32}
+
+                ]
+            },
+            {
+                "name": "Castle 2",
+                "grid": [
+                    "################",
+                    "#LT          TL#",
+                    "#T            T#",
+                    "#    B B B     #",
+                    "#   B     B    #",
+                    "#      P       #",
+                    "#   B     B    #",
+                    "#     #T#      #",
+                    "#T    #E#     T#",
+                    "#LT   ###    TL#",
+                    "################"
+                ],
+                "temp_walls":[
+                    {"position": [2,1], "duration": 50},
+                    {"position": [13,1], "duration": 50},
+
+                    {"position": [1,2], "duration": 50},
+                    {"position": [14,2], "duration": 50},
+
+                    {"position": [2,9], "duration": 50},
+                    {"position": [13,9], "duration": 50},
+
+                    {"position": [1,8], "duration": 50},
+                    {"position": [14,8], "duration": 50},
+
+                    {"position": [7,7], "duration": 64}
+
+                ]
+            },
+            {
+                "name": "Dark matter",
+                "grid": [
+                    "################",
+                    "##W         W###",
+                    "##     B     ###",
+                    "##   #DDD#   ###",
+                    "##   DL LD   ###",
+                    "##  PD E DB  ###",
+                    "##   DL LD   ###",
+                    "##   #DDD#   ###",
+                    "##     B     ###",
+                    "##W         W###",
+                    "################"
+                ]
             }
 ]

@@ -26,18 +26,27 @@ class Color:
     # Tile colors
     LAVA = (255, 69, 0)
     LAVA_DARK = (200, 40, 0)
+    
     AQUA = (30, 144, 255)
     AQUA_DARK = (0, 100, 200)
+    
     PLAYER = (255, 255, 0)
     PLAYER_DARK = (200, 200, 0)
-    EXIT = (50, 205, 50)
-    EXIT_DARK = (34, 139, 34)
+    
+    EXIT = (128, 0, 128)
+    EXIT_DARK = (80, 0, 80)
+    
     WALL = (169, 169, 169)
     WALL_DARK = (105, 105, 105)
+    
     EMPTY = (40, 40, 40)
     EMPTY_DARK = (20, 20, 20)
+    
     BOX = (160, 82, 45)
     BOX_DARK = (110, 52, 25)
+    
+    Temp_WALL = (50, 205, 50)
+    Temp_WALL_DARK = (34, 139, 34)
 
 # Tile types
 class TileType(Enum):
@@ -51,19 +60,17 @@ class TileType(Enum):
     BOX = "B"
     Key = "K"
     Temp_Wall = "T"
-
-# # Animation settings
-# ANIMATION_SPEED = 0.1
-# LAVA_ANIMATION_FRAMES = 4
-# AQUA_ANIMATION_FRAMES = 3
+    Semi_Wall = "S"
+    Dark_Wall = "D"
 
 # File paths
 BASE_DIR = Path(__file__).parent.parent.parent.parent
 ASSETS_DIR = BASE_DIR / "assets"
 LEVELS_DIR = ASSETS_DIR / "levels"
-LEVELS_FILE = LEVELS_DIR / "levels.json"
+# LEVELS_FILE = LEVELS_DIR / "levels.json"
 # LEVELS_FILE = LEVELS_DIR / "temp_wall_test.json"
 # LEVELS_FILE = LEVELS_DIR / "test.json"
+LEVELS_FILE = LEVELS_DIR / "walls_test.json"
 # IMAGES_DIR = ASSETS_DIR / "images"
 # FONTS_DIR = ASSETS_DIR / "fonts"
 

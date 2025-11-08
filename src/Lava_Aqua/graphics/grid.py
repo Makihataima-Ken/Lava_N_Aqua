@@ -131,6 +131,8 @@ class Grid:
             '#': TileType.WALL,
             'E': TileType.EXIT,
             'K': TileType.Key,
+            'S': TileType.Semi_Wall,
+            'D': TileType.Dark_Wall,
         }
         return char_map.get(char, TileType.EMPTY)
     
