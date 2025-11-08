@@ -4,7 +4,7 @@ from typing import List, Tuple, Set
 import pygame
 
 from ..graphics.grid import Grid
-from ..core.constants import Color, TILE_SIZE
+from ..core.constants import Color, TILE_SIZE, Direction
 
 
 class Lava:
@@ -59,7 +59,7 @@ class Lava:
         """
         return position in self._positions
     
-    def update(self, grid: Grid,box_positions: List[Tuple[int, int]]=None) -> None:
+    def update(self, grid: Grid,box_positions: List[Tuple[int, int]]=None, temp_wall_positions: List[Tuple[int, int]] = None) -> None:
         """Update lava flow - spread to adjacent tiles.
         
         Lava spreads to adjacent empty floor tiles in all 4 directions.
@@ -75,21 +75,18 @@ class Lava:
         grid_height = grid.get_height()
         
         # Check all *current* lava positions
-        # Note: We iterate over self._positions, but only add to new_positions.
-        # This correctly simulates the lava spreading from its current locations.
+        # iterate over self._positions, but only add to new_positions.
         for x, y in self._positions:
             # Try spreading in all 4 directions
-            for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+            for dx, dy in [Direction.value for Direction in Direction]:
                 nx, ny = x + dx, y + dy
-                
-                # --- This is the new, optimized logic ---
                 
                 # 1. Check if new position is within bounds
                 if 0 <= nx < grid_width and 0 <= ny < grid_height:
                     
                     # 2. Check if the tile is walkable (i.e., not a wall)
                     # We use the grid's own method, which is much cleaner.
-                    if grid.is_flowable(nx, ny) and (box_positions is None or (nx, ny) not in box_positions):
+                    if grid.is_flowable(nx, ny) and (box_positions is None or (nx, ny) not in box_positions) and (temp_wall_positions is None or (nx, ny) not in temp_wall_positions):
                         new_positions.add((nx, ny))
         
         # Update positions

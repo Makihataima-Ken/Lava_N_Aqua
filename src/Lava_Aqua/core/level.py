@@ -11,17 +11,22 @@ from .constants import TileType, LEVELS_FILE
 @dataclass
 class LevelData:
     """Level data structure."""
+    
+    # static data
     name: str
     grid: List[List[str]]
     width: int
     height: int
-    initial_pos: Tuple[int, int]
     exit_pos: Tuple[int, int]
+    exit_keys_poses: List[Tuple[int, int]]  
     
+    # initial dynamic data
+    initial_pos: Tuple[int, int]
     lava_poses: List[Tuple[int, int]]
     box_poses: List[Tuple[int, int]] 
     aqua_poses: List[Tuple[int, int]]
-    exit_keys_poses: List[Tuple[int, int]] = None  
+    
+    temp_walls: Optional[List[Dict[str, Any]]] = None 
     
     def __str__(self) -> str:
         return f"LevelData(name={self.name}, size=({self.width}x{self.height}), initial_pos={self.initial_pos}, exit_pos={self.exit_pos})"
@@ -41,14 +46,9 @@ class LevelData:
         height = len(grid)
         width = len(grid[0])
         
-        initial_pos: Optional[Tuple[int, int]] = None
-        exit_pos: Optional[Tuple[int, int]] = None
+        initial_pos, exit_pos = None, None
+        lava_poses, box_poses, aqua_poses, exit_keys_poses = [], [], [], []
         
-        lava_poses: List[Tuple[int, int]] = []
-        box_poses: List[Tuple[int, int]] = []
-        aqua_poses: List[Tuple[int, int]] = []
-        exit_keys_poses: List[Tuple[int, int]] = []
-
         for y in range(height):
             # Ensure grid is not ragged
             if len(grid[y]) != width:
@@ -75,12 +75,17 @@ class LevelData:
                     aqua_poses.append((x,y))
                     grid[y][x] = TileType.EMPTY.value
                 elif tile == TileType.Key.value:
-                    exit_keys_poses.append((x,y)) 
+                    exit_keys_poses.append((x,y))
+                elif tile == TileType.Temp_Wall.value:
+                    # Temporary walls handled elsewhere
+                    grid[y][x] = TileType.EMPTY.value 
 
         if initial_pos is None:
             raise ValueError(f"Level '{name}' has no player start position")
         if exit_pos is None:
             raise ValueError(f"Level '{name}' has no exit position")
+        
+        temp_walls = data.get("temp_walls", [])
         
         return cls(
             name=name,
@@ -92,7 +97,8 @@ class LevelData:
             lava_poses = lava_poses,
             box_poses = box_poses,
             aqua_poses = aqua_poses,
-            exit_keys_poses = exit_keys_poses
+            exit_keys_poses = exit_keys_poses,
+            temp_walls=temp_walls
         )
 
 

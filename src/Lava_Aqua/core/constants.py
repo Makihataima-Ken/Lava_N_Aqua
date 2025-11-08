@@ -50,6 +50,7 @@ class TileType(Enum):
     EXIT = "E"
     BOX = "B"
     Key = "K"
+    Temp_Wall = "T"
 
 # # Animation settings
 # ANIMATION_SPEED = 0.1
@@ -60,7 +61,9 @@ class TileType(Enum):
 BASE_DIR = Path(__file__).parent.parent.parent.parent
 ASSETS_DIR = BASE_DIR / "assets"
 LEVELS_DIR = ASSETS_DIR / "levels"
-LEVELS_FILE = LEVELS_DIR / "test.json"
+LEVELS_FILE = LEVELS_DIR / "levels.json"
+# LEVELS_FILE = LEVELS_DIR / "temp_wall_test.json"
+# LEVELS_FILE = LEVELS_DIR / "test.json"
 # IMAGES_DIR = ASSETS_DIR / "images"
 # FONTS_DIR = ASSETS_DIR / "fonts"
 

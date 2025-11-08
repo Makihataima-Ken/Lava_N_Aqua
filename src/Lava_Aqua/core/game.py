@@ -11,6 +11,7 @@ from ..entities.lava import Lava
 from ..entities.box import Box
 from ..graphics.grid import Grid
 from ..entities.aqua import Aqua
+from ..entities.temporary_wall import TemporaryWall
 
 import pygame
 
@@ -24,6 +25,7 @@ class GameState:
     lava_positions: List[Tuple[int, int]]
     aqua_positions: List[Tuple[int, int]]
     exit_keys_positions: List[Tuple[int, int]]
+    temp_wall_data: List[Tuple[Tuple[int, int], int]]  # (position, remaining_duration)
     moves: int
 
 
@@ -44,6 +46,8 @@ class GameLogic:
         self.history: List[GameState] = []
         self.game_over = False
         self.level_complete = False
+        
+        self.temp_walls: List[TemporaryWall] = []
         
         self.load_current_level()    
     
@@ -76,7 +80,15 @@ class GameLogic:
         # Initialize boxes
         self.boxes = [Box(pos) for pos in level_data.box_poses]
         
+        self.temp_walls = []
+        # if hasattr(level, 'temp_walls') and level.temp_walls:
+        for wall_data in level_data.temp_walls:
+            pos = tuple(wall_data['position'])  # [x, y] -> (x, y)
+            duration = wall_data['duration']
+            self.temp_walls.append(TemporaryWall(pos, duration))
+        
         self.aqua.reset(level_data.aqua_poses)
+        
         
         self.moves = 0
         self.history = []
@@ -92,6 +104,7 @@ class GameLogic:
             box_positions=[box.get_position() for box in self.boxes],
             aqua_positions = list(self.aqua.get_positions()),
             exit_keys_positions = list(self.exit_keys_positions),
+            temp_wall_data=[(wall.get_position(), wall.get_remaining_duration()) for wall in self.temp_walls],
             moves=self.moves
         )
         self.history.append(state)
@@ -117,6 +130,12 @@ class GameLogic:
             
         for i, pos in enumerate(state.box_positions):
             self.boxes[i].set_position(pos)
+            
+        # Restore temp walls
+        for pos, duration in state.temp_wall_data:
+            wall = self._get_temp_wall_at(pos)
+            if wall:
+                wall.set_remaining_duration(duration)
         
         self.moves = state.moves
         self.game_over = False
@@ -127,6 +146,20 @@ class GameLogic:
     def reset_level(self) -> None:
         """Reset current level."""
         self.load_current_level()
+        
+    def _get_active_temp_wall_at(self, pos: Tuple[int, int]) -> Optional[TemporaryWall]:
+        """Get active temporary wall at position."""
+        for wall in self.temp_walls:
+            if wall.get_position() == pos and wall.is_blocking():
+                return wall
+        return None
+    
+    def _get_temp_wall_at(self, pos: Tuple[int, int]) -> Optional[TemporaryWall]:
+        """Get active temporary wall at position."""
+        for wall in self.temp_walls:
+            if wall.get_position() == pos:
+                return wall
+        return None
     
     def can_move_to(self, pos: Tuple[int, int]) -> bool:
         """Check if position is walkable.
@@ -147,6 +180,9 @@ class GameLogic:
         if y < 0 or y >= self.grid.get_height() or x < 0 or x >= self.grid.get_width():
             return False
         
+        if self._get_active_temp_wall_at(pos):
+            return False
+    
         # Use Grid's walkability check
         return self.grid.is_walkable(x, y)
     
@@ -197,10 +233,19 @@ class GameLogic:
         return True
     
     def _can_push_box(self, box_new_pos: Tuple[int, int]) -> bool:
-        """Check if a box can be pushed to the new position."""
-        is_box_blocked = self._get_box_at(box_new_pos) is not None
-        is_wall_blocked = not self.grid.is_walkable(box_new_pos[0], box_new_pos[1])
-        return not is_box_blocked and not is_wall_blocked
+        # Check for another box
+        if self._get_box_at(box_new_pos) is not None:
+            return False
+        
+        # Check for wall
+        if not self.grid.is_walkable(box_new_pos[0], box_new_pos[1]):
+            return False
+        
+        # Check for active temporary wall (NEW)
+        if self._get_active_temp_wall_at(box_new_pos):
+            return False
+        
+        return True
 
     def _execute_box_push(self, box_to_push, player_new_pos: Tuple[int, int], box_new_pos: Tuple[int, int]):
         """Execute the box push and player movement."""
@@ -212,6 +257,10 @@ class GameLogic:
         # Handle box landing on lava
         if self.lava.is_at(box_new_pos):
             self.lava.remove_at(box_new_pos)
+        
+        # Handle box landing on aqua
+        if self.aqua.is_at(box_new_pos):
+            self.aqua.remove_at(box_new_pos)
         
         # Move the player
         self.player.set_position(player_new_pos)
@@ -225,15 +274,27 @@ class GameLogic:
         return True
 
     def _update_game_state(self) -> None:
-        """Update game state after a successful move."""
+        # Update temporary walls (decrease duration)
+        for wall in self.temp_walls:
+            wall.update()
         
-        self.lava.update(self.grid, [box.get_position() for box in self.boxes])
-            
-        self.aqua.update(self.grid, [box.get_position() for box in self.boxes])
-            
+        # Remove expired walls (NEW)
+        # self.temp_walls = [w for w in self.temp_walls if not w.is_expired()]
+        
+        # Update lava (with temp wall blocking)
+        self.lava.update(
+            self.grid, 
+            [box.get_position() for box in self.boxes],
+            [wall.get_position() for wall in self.temp_walls if wall.is_blocking()]
+        )
+        
+        # Update aqua (with temp wall blocking)
+        self.aqua.update(
+            self.grid, 
+            [box.get_position() for box in self.boxes],
+            [wall.get_position() for wall in self.temp_walls if wall.is_blocking()]
+        )
         self._handle_lava_aqua_collisions()
-            
-        # Check game state
         self._check_game_state()
     
     def _handle_lava_aqua_collisions(self) -> None:
@@ -338,15 +399,14 @@ class GameLogic:
         # Draw lava on top of tiles
         self.lava.draw(surface, offset_x, offset_y, animation_time)
         
-        self.aqua.draw(surface, offset_x, offset_y, animation_time) # WIP
-        
-        # # --- DEBUG PRINT ---
-        # if not self.boxes:
-        #     print("DEBUG: self.boxes list is EMPTY")
+        # Draw Aqua on top of tiles
+        self.aqua.draw(surface, offset_x, offset_y, animation_time)
         
         # 3. Draw boxes on top of lava
         for box in self.boxes:
             box.draw(surface, offset_x, offset_y)
-            
+        
+        for wall in self.temp_walls:
+            wall.draw(surface, offset_x, offset_y, animation_time)    
         # Draw player on top
         self.player.draw(surface, offset_x, offset_y)
