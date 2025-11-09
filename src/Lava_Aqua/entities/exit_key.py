@@ -13,6 +13,7 @@ class ExitKey:
             position: Position as (x, y)
         """
         self._position = position
+        self._collected = False
     
     def get_position(self) -> Tuple[int, int]:
         """Get exit key position.
@@ -38,7 +39,23 @@ class ExitKey:
         """
         return self._position == position
     
-    def draw(self, surface: pygame.Surface, offset_x: int, offset_y: int) -> None:
+    def is_collected(self) -> bool:
+        """Check if exit key has been collected.
+        
+        Returns:
+            True if collected
+        """
+        return self._collected
+    
+    def collect(self) -> None:
+        """Mark exit key as collected."""
+        self._collected = True
+        
+    def uncollect(self) -> None:
+        """Mark exit key as not collected (for undo)."""
+        self._collected = False
+    
+    def draw(self, surface: pygame.Surface, offset_x: int, offset_y: int, animation_time: float = 0.0) -> None:
         """Draw exit key on given surface.
         
         Args:
@@ -46,6 +63,9 @@ class ExitKey:
             offset_x: X offset for grid
             offset_y: Y offset for grid
         """
+        if self._collected:
+            return
+        
         # Get position as (x, y)
         x, y = self._position
         

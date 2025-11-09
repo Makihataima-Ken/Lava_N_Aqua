@@ -84,8 +84,8 @@ class Tile:
             self._draw_wall(surface, rect)
         elif self._tile_type == TileType.EXIT:
             self._draw_exit(surface, rect, animation_time)
-        elif self._tile_type == TileType.Key:
-            self._draw_key(surface, rect,pixel_x,pixel_y,animation_time)
+        # elif self._tile_type == TileType.Key:
+        #     self._draw_key(surface, rect,pixel_x,pixel_y,animation_time)
         elif self._tile_type == TileType.Semi_Wall:
             self._draw_semi_wall(surface, rect)
         elif self._tile_type == TileType.Dark_Wall:

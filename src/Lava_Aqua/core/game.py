@@ -12,6 +12,7 @@ from ..entities.box import Box
 from ..graphics.grid import Grid
 from ..entities.aqua import Aqua
 from ..entities.temporary_wall import TemporaryWall
+from ..entities.exit_key import ExitKey
 
 import pygame
 
@@ -19,12 +20,11 @@ import pygame
 @dataclass
 class GameState:
     """Represents a snapshot of the game state."""
-    # grid_data: List[List[str]]
     player_pos: Tuple[int, int]
     box_positions: List[Tuple[int, int]]
     lava_positions: List[Tuple[int, int]]
     aqua_positions: List[Tuple[int, int]]
-    exit_keys_positions: List[Tuple[int, int]]
+    collected_key_indices: List[int]
     temp_wall_data: List[Tuple[Tuple[int, int], int]]  # (position, remaining_duration)
     moves: int
 
@@ -41,11 +41,12 @@ class GameLogic:
         self.boxes: List[Box] = [] # WIP
         self.grid: Optional[Grid] = None
         self.exit_pos: Tuple[int, int] = (0, 0)
-        self.exit_keys_positions: List[Tuple[int, int]] = []
         self.moves = 0
         self.history: List[GameState] = []
         self.game_over = False
         self.level_complete = False
+
+        self.exit_keys: List[ExitKey] = []
         
         self.temp_walls: List[TemporaryWall] = []
         
@@ -72,7 +73,7 @@ class GameLogic:
         
         self.exit_pos = (level_data.exit_pos)
         
-        self.exit_keys_positions = level_data.exit_keys_poses
+        self.exit_keys = [ExitKey(pos) for pos in level_data.exit_keys_poses]
         
         # Initialize lava with extracted positions
         self.lava.reset(level_data.lava_poses)
@@ -103,7 +104,7 @@ class GameLogic:
             lava_positions=list(self.lava.get_positions()),
             box_positions=[box.get_position() for box in self.boxes],
             aqua_positions = list(self.aqua.get_positions()),
-            exit_keys_positions = list(self.exit_keys_positions),
+            collected_key_indices = [i for i, key in enumerate(self.exit_keys) if key.is_collected()],
             temp_wall_data=[(wall.get_position(), wall.get_remaining_duration()) for wall in self.temp_walls],
             moves=self.moves
         )
@@ -123,7 +124,6 @@ class GameLogic:
             return False
         
         state = self.history.pop()
-        # self.grid = Grid(state.grid_data)
         self.player.set_position(state.player_pos)
         self.lava.set_positions(set(state.lava_positions))
         self.aqua.set_positions(set(state.aqua_positions))
@@ -136,6 +136,12 @@ class GameLogic:
             wall = self._get_temp_wall_at(pos)
             if wall:
                 wall.set_remaining_duration(duration)
+                
+        for i, key in enumerate(self.exit_keys):
+            if i in state.collected_key_indices:
+                key.collect()
+            else:
+                key.uncollect()
         
         self.moves = state.moves
         self.game_over = False
@@ -317,12 +323,19 @@ class GameLogic:
         """Check if game is over or level is complete."""
         player_pos = self.player.get_position()
         
-        if player_pos in self.exit_keys_positions:
-            self.grid.set_tile_type(player_pos[0], player_pos[1], TileType.EMPTY)
-            self.exit_keys_positions.remove(player_pos)
-        
+        # Check for key collection
+        for key in self.exit_keys:
+            # If player is at key position AND it's not already collected
+            if key.is_at(player_pos) and not key.is_collected():
+                key.collect()
+                
+        # Check if all keys are collected
+        all_keys_collected = True
+        if self.exit_keys: # Only check if the list isn't empty
+            all_keys_collected = all(key.is_collected() for key in self.exit_keys)
+
         # Check if player reached exit
-        if player_pos == self.exit_pos and not self.exit_keys_positions:
+        if player_pos == self.exit_pos and all_keys_collected:
             self.level_complete = True
         
         # Check if player is on lava
@@ -408,5 +421,12 @@ class GameLogic:
         
         for wall in self.temp_walls:
             wall.draw(surface, offset_x, offset_y, animation_time)    
+            
+        # --- NEW ---
+        # 4. Draw Exit Keys
+        for key in self.exit_keys:
+            key.draw(surface, offset_x, offset_y, animation_time)
+        # ---
+            
         # Draw player on top
         self.player.draw(surface, offset_x, offset_y)

@@ -76,6 +76,7 @@ class LevelData:
                     grid[y][x] = TileType.EMPTY.value
                 elif tile == TileType.Key.value:
                     exit_keys_poses.append((x,y))
+                    grid[y][x] = TileType.EMPTY.value
                 elif tile == TileType.Temp_Wall.value:
                     # Temporary walls handled elsewhere
                     grid[y][x] = TileType.EMPTY.value 
