@@ -14,9 +14,6 @@ from ..entities.aqua import Aqua
 from ..entities.temporary_wall import TemporaryWall
 from ..entities.exit_key import ExitKey
 
-import pygame
-
-
 @dataclass
 class GameState:
     """Represents a snapshot of the game state."""
@@ -26,6 +23,7 @@ class GameState:
     aqua_positions: List[Tuple[int, int]]
     collected_key_indices: List[int]
     temp_wall_data: List[Tuple[Tuple[int, int], int]]  # (position, remaining_duration)
+    altered_tile_positions: list[Tuple[int,int]]
     moves: int
 
 
@@ -49,6 +47,8 @@ class GameLogic:
         self.exit_keys: List[ExitKey] = []
         
         self.temp_walls: List[TemporaryWall] = []
+        
+        self.altered_tile_positions: list[Tuple[int,int]] = []
         
         self.load_current_level()    
     
@@ -106,6 +106,7 @@ class GameLogic:
             aqua_positions = list(self.aqua.get_positions()),
             collected_key_indices = [i for i, key in enumerate(self.exit_keys) if key.is_collected()],
             temp_wall_data=[(wall.get_position(), wall.get_remaining_duration()) for wall in self.temp_walls],
+            altered_tile_positions = self.altered_tile_positions.copy(),
             moves=self.moves
         )
         self.history.append(state)
@@ -142,6 +143,18 @@ class GameLogic:
                 key.collect()
             else:
                 key.uncollect()
+        
+        current_altered_set = set(self.altered_tile_positions)
+        saved_altered_set = set(state.altered_tile_positions)
+        tiles_to_revert = current_altered_set - saved_altered_set
+
+        # 2. Revert those specific tiles back to EMPTY (assuming they were EMPTY before)
+        if self.grid:
+            for pos in tiles_to_revert:
+                self.grid.set_tile_type(pos[0], pos[1], TileType.EMPTY)
+
+        # 3. Restore the list of altered tiles to its previous state
+        self.altered_tile_positions = state.altered_tile_positions
         
         self.moves = state.moves
         self.game_over = False
@@ -220,10 +233,11 @@ class GameLogic:
         # 4. Update game state if any move happened
         if move_successful:
             self._update_game_state() 
-            # return True
-        
+            return True
+
         return False # Move was blocked
-    
+        
+        
     def _handle_box_push(self, box_to_push, box_pos: Tuple[int, int], direction: Direction) -> bool:
         """Handle pushing a box. Returns True if successful."""
         # Calculate where the box would move
@@ -282,6 +296,15 @@ class GameLogic:
     def _update_game_state(self) -> None:
         """Update game state after a move."""
                 
+        # Update aqua (with temp wall blocking)
+        self.aqua.update(
+            self.grid, 
+            [box.get_position() for box in self.boxes],
+            [wall.get_position() for wall in self.temp_walls if wall.is_blocking()]
+        )
+        
+        self._handle_lava_aqua_collisions()
+        
         # Update lava (with temp wall blocking)
         self.lava.update(
             self.grid, 
@@ -289,12 +312,6 @@ class GameLogic:
             [wall.get_position() for wall in self.temp_walls if wall.is_blocking()]
         )
         
-        # Update aqua (with temp wall blocking)
-        self.aqua.update(
-            self.grid, 
-            [box.get_position() for box in self.boxes],
-            [wall.get_position() for wall in self.temp_walls if wall.is_blocking()]
-        )
         self._handle_lava_aqua_collisions()
         
         # Update temporary walls (decrease duration)
@@ -317,6 +334,7 @@ class GameLogic:
             # 2. Turn this tile into a wall in the grid
             if self.grid:
                 self.grid.set_tile_type(x, y, TileType.WALL)
+                self.altered_tile_positions.append((x,y))
 
     
     def _check_game_state(self) -> None:
@@ -338,6 +356,9 @@ class GameLogic:
         if player_pos == self.exit_pos and all_keys_collected:
             self.level_complete = True
         
+        if self.grid.get_tile_type(player_pos[0],player_pos[1]) == TileType.WALL:
+            self.game_over = True
+            
         # Check if player is on lava
         if self.lava.is_at(player_pos):
             self.game_over = True
@@ -371,6 +392,10 @@ class GameLogic:
         """Get total number of levels."""
         return self.level_manager.get_level_count()
     
+    def get_level_description(self) -> str:
+        """Get current level description."""
+        return f"Lava & Aqua - Level {self.get_level_number()}/{self.get_total_levels()}: {self.get_level_name()}"
+    
     def is_last_level(self) -> bool:
         """Check if on last level."""
         return self.level_manager.is_last_level()
@@ -393,40 +418,100 @@ class GameLogic:
         """
         return self.grid
     
-    def draw(self, surface: pygame.Surface, offset_x: int = 0, 
-             offset_y: int = 0, animation_time: float = 0.0) -> None:
-        """Draw the entire game state.
-        Args:
-            surface: Pygame surface to draw on
-            offset_x: X offset for grid
-            offset_y: Y offset for grid
-            animation_time: Time for animations
+    
+    # ------------------------------------------------------------
+    # === STATE SNAPSHOT MANAGEMENT (NEW FOR SOLVERS) ===
+    # ------------------------------------------------------------
+
+    def get_state(self) -> GameState:
+        """Return a serializable snapshot of the current game state."""
+        return GameState(
+            player_pos=self.player.get_position(),
+            box_positions=[box.get_position() for box in self.boxes],
+            lava_positions=list(self.lava.get_positions()),
+            aqua_positions=list(self.aqua.get_positions()),
+            collected_key_indices=[
+                i for i, key in enumerate(self.exit_keys) if key.is_collected()
+            ],
+            temp_wall_data=[
+                (wall.get_position(), wall.get_remaining_duration()) for wall in self.temp_walls
+            ],
+            altered_tile_positions=self.altered_tile_positions.copy(),
+            moves=self.moves,
+        )
+
+    def load_state(self, state: GameState) -> None:
+        """Restore the game to a given snapshot (used for solver transitions)."""
+        self.player.set_position(state.player_pos)
+        self.lava.set_positions(set(state.lava_positions))
+        self.aqua.set_positions(set(state.aqua_positions))
+            
+        for i, pos in enumerate(state.box_positions):
+            self.boxes[i].set_position(pos)
+            
+        # Restore temp walls
+        for pos, duration in state.temp_wall_data:
+            wall = self._get_temp_wall_at(pos)
+            if wall:
+                wall.set_remaining_duration(duration)
+                
+        for i, key in enumerate(self.exit_keys):
+            if i in state.collected_key_indices:
+                key.collect()
+            else:
+                key.uncollect()
+        
+        current_altered_set = set(self.altered_tile_positions)
+        saved_altered_set = set(state.altered_tile_positions)
+        tiles_to_revert = current_altered_set - saved_altered_set
+
+        # 2. Revert those specific tiles back to EMPTY (assuming they were EMPTY before)
+        if self.grid:
+            for pos in tiles_to_revert:
+                self.grid.set_tile_type(pos[0], pos[1], TileType.EMPTY)
+
+        # 3. Restore the list of altered tiles to its previous state
+        self.altered_tile_positions = state.altered_tile_positions
+        
+        self.moves = state.moves
+        self.game_over = False
+        self.level_complete = False
+
+    def simulate_move(self, direction: Direction) -> Optional[GameState]:
         """
-        if not self.grid:
-            print("Error: No grid available")
-            return 'quit'
+        Simulate moving the player WITHOUT deepcopy.
         
-        # Draw tiles first (background)
-        self.grid.draw(surface, offset_x, offset_y, animation_time)
+        Returns a new GameState if valid move, otherwise None.
         
-        # Draw lava on top of tiles
-        self.lava.draw(surface, offset_x, offset_y, animation_time)
+        OPTIMIZED VERSION - Much faster!
+        """
+        # Save current state (lightweight)
+        original_state = self.get_state()
         
-        # Draw Aqua on top of tiles
-        self.aqua.draw(surface, offset_x, offset_y, animation_time)
+        # Try the move (modifies self temporarily)
+        moved = self.move_player(direction)
         
-        # 3. Draw boxes on top of lava
-        for box in self.boxes:
-            box.draw(surface, offset_x, offset_y)
-        
-        for wall in self.temp_walls:
-            wall.draw(surface, offset_x, offset_y, animation_time)    
+        if moved and not self.game_over:
+            # Capture the resulting state
+            result_state = self.get_state()
             
-        # --- NEW ---
-        # 4. Draw Exit Keys
-        for key in self.exit_keys:
-            key.draw(surface, offset_x, offset_y, animation_time)
-        # ---
+            # Restore original state
+            self.load_state(original_state)
             
-        # Draw player on top
-        self.player.draw(surface, offset_x, offset_y)
+            return result_state
+        else:
+            # Move failed or game over - restore and return None
+            self.load_state(original_state)
+            return None
+
+    def _clone_from(self, other: 'GameLogic') -> None:
+        """Deeply clone another GameLogic instance (for solvers if needed)."""
+        self.player.set_position(other.player.get_position())
+        self.lava.set_positions(set(other.lava.get_positions()))
+        self.aqua.set_positions(set(other.aqua.get_positions()))
+        for i, box in enumerate(self.boxes):
+            box.set_position(other.boxes[i].get_position())
+        self.moves = other.moves
+        self.game_over = other.game_over
+        self.level_complete = other.level_complete
+        self.altered_tile_positions = other.altered_tile_positions.copy()

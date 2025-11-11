@@ -3,16 +3,8 @@
 from enum import Enum
 from pathlib import Path
 
-# # Window settings
-# WINDOW_WIDTH = 800
-# WINDOW_HEIGHT = 600
-FPS = 60
-TITLE = "Lava & Aqua"
-
-# Grid settings
+# Grid tile size
 TILE_SIZE = 40
-# GRID_OFFSET_X = 50
-# GRID_OFFSET_Y = 100
 
 # Colors (RGB)
 class Color:
@@ -67,12 +59,10 @@ class TileType(Enum):
 BASE_DIR = Path(__file__).parent.parent.parent.parent
 ASSETS_DIR = BASE_DIR / "assets"
 LEVELS_DIR = ASSETS_DIR / "levels"
-# LEVELS_FILE = LEVELS_DIR / "levels.json"
+LEVELS_FILE = LEVELS_DIR / "levels.json"
 # LEVELS_FILE = LEVELS_DIR / "temp_wall_test.json"
 # LEVELS_FILE = LEVELS_DIR / "test.json"
-LEVELS_FILE = LEVELS_DIR / "walls_test.json"
-# IMAGES_DIR = ASSETS_DIR / "images"
-# FONTS_DIR = ASSETS_DIR / "fonts"
+# LEVELS_FILE = LEVELS_DIR / "walls_test.json"
 
 # Game settings
 MAX_UNDO_HISTORY = 50

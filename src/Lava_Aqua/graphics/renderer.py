@@ -1,36 +1,71 @@
 import pygame
 import time
 from src.Lava_Aqua.core.game import GameLogic
+from ..core.constants import TILE_SIZE
 
 class Renderer:
     """Handles all rendering operations."""
     
-    def __init__(self, screen: pygame.Surface):
+    def __init__(self, width:int, height:int, caption:str="Lava & Aqua"):
         """Initialize renderer.
         
         Args:
             screen: Pygame surface to draw on
         """
-        self.screen = screen
+        self.screen = self._setup_screen(width, height, caption)
         self.font = pygame.font.Font(None, 24)
         self.large_font = pygame.font.Font(None, 74)
         self.medium_font = pygame.font.Font(None, 36)
+        
+    def _setup_screen(self, width:int, height:int, caption:str="Lava & Aqua") -> pygame.Surface:
+        """Setup pygame screen based on grid dimensions.
+        
+        Returns:
+            width: Screen width
+            height: Screen height
+            caption: Window caption
+        """
+        
+        pygame.init()
+        screen_width = width * TILE_SIZE
+        screen_height = height * TILE_SIZE
+        screen = pygame.display.set_mode((screen_width, screen_height))
+        
+        pygame.display.set_caption(caption)
+        
+        return screen
     
     def clear(self) -> None:
         """Clear the screen."""
         self.screen.fill((0, 0, 0))
-    
-    def draw_game_state(self, game_logic: GameLogic, animation_time: float) -> None:
+
+    def draw_game_state(self, game_logic: GameLogic, animation_time: float = 0.0) -> None:
         """Draw the current game state.
-        
+
         Args:
             game_logic: Game logic instance
             animation_time: Current animation time
         """
-        # tile_grid = game_logic.get_grid()
-        # if tile_grid:
-        game_logic.draw(self.screen, 0, 0, animation_time)
-    
+        grid = game_logic.grid
+        
+        if not grid:
+            raise ValueError("No grid available to draw")
+
+        grid.draw(self.screen, 0, 0, animation_time)
+        game_logic.lava.draw(self.screen, 0, 0, animation_time)
+        game_logic.aqua.draw(self.screen, 0, 0, animation_time)
+        
+        for box in game_logic.boxes:
+            box.draw(self.screen, 0, 0)
+            
+        for wall in game_logic.temp_walls:
+            wall.draw(self.screen, 0, 0, animation_time)
+            
+        for key in game_logic.exit_keys:
+            key.draw(self.screen, 0, 0, animation_time)
+            
+        game_logic.player.draw(self.screen, 0, 0)
+
     def draw_ui_info(self, level_num: int, total_levels: int, moves: int, lava_count: int) -> None:
         """Draw UI information bar.
         

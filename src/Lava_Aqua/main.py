@@ -2,11 +2,63 @@
 
 from src.Lava_Aqua.app.game_app import GameApplication
 
-def main():
-    """Entry point for the game."""
-    app = GameApplication()
+from src.Lava_Aqua.core.game import GameLogic
+from src.Lava_Aqua.controllers.player_controller import PlayerController
+from src.Lava_Aqua.algorithms import BFSSolver
+
+def main_user_play():
+    """Run game in user play mode."""
+    app = GameApplication(controller_class=PlayerController)
     app.run()
 
 
-if __name__ == '__main__':
+def main_solver_bfs():
+    """Run game with BFS solver."""
+    app = GameApplication()
+    solver = BFSSolver()
+    app.run_with_solver(
+        solver=solver,
+        move_delay=0.3,
+        visualize=True
+    )
+
+def main():
+    """Run game with command-line arguments."""
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='Lava & Aqua Game')
+    parser.add_argument(
+        '--mode',
+        choices=['play', 'bfs', 'dfs', 'random'],
+        default='play',
+        help='Game mode'
+    )
+    parser.add_argument(
+        '--speed',
+        type=float,
+        default=0.2,
+        help='Solver move delay in seconds'
+    )
+    parser.add_argument(
+        '--max-depth',
+        type=int,
+        default=50,
+        help='Max depth for DFS solver'
+    )
+    parser.add_argument(
+        '--no-visualize',
+        action='store_true',
+        help='Disable visualization (faster solving)'
+    )
+    
+    args = parser.parse_args()
+    
+    if args.mode == 'play':
+        main_user_play()
+    elif args.mode == 'bfs':
+        main_solver_bfs()
+    
+
+
+if __name__ == "__main__":
     main()
