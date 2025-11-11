@@ -476,6 +476,7 @@ class GameLogic:
         self.moves = state.moves
         self.game_over = False
         self.level_complete = False
+        self._check_game_state() 
 
     def simulate_move(self, direction: Direction) -> Optional[GameState]:
         """
