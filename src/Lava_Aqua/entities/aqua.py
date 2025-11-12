@@ -67,29 +67,20 @@ class Aqua:
         Args:
             grid: The main Grid object, used to check for walkable tiles.
         """
-        # Start with current positions
         new_positions = set(self._positions)
         
-        # Get grid dimensions once
         grid_width = grid.get_width()
         grid_height = grid.get_height()
         
-        # Check all *current* lava positions
-        # iterate over self._positions, but only add to new_positions.
         for x, y in self._positions:
-            # Try spreading in all 4 directions
             for dx, dy in [Direction.value for Direction in Direction]:
                 nx, ny = x + dx, y + dy
                 
-                # 1. Check if new position is within bounds
                 if 0 <= nx < grid_width and 0 <= ny < grid_height:
                     
-                    # 2. Check if the tile is walkable (i.e., not a wall)
-                    # We use the grid's own method, which is much cleaner.
                     if grid.is_flowable(nx, ny) and (box_positions is None or (nx, ny) not in box_positions) and (temp_wall_positions is None or (nx, ny) not in temp_wall_positions) and grid.get_tile_type(nx, ny)!=TileType.Key:
                         new_positions.add((nx, ny))
-        
-        # Update positions
+                        
         self._positions = new_positions
     
     def reset(self, positions: List[Tuple[int, int]]) -> None:

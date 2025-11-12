@@ -1,11 +1,9 @@
-"""Main game logic and state management."""
-
 from typing import List, Tuple, Optional, Dict, Any
 from dataclasses import dataclass
 from copy import deepcopy
 
 from .level import LevelManager
-from .constants import TileType, MAX_UNDO_HISTORY, Direction
+from .constants import TileType, Direction
 from ..entities.player import Player
 from ..entities.lava import Lava
 from ..entities.box import Box
@@ -16,7 +14,6 @@ from ..entities.exit_key import ExitKey
 
 @dataclass
 class GameState:
-    """Represents a snapshot of the game state."""
     player_pos: Tuple[int, int]
     box_positions: List[Tuple[int, int]]
     lava_positions: List[Tuple[int, int]]
@@ -28,10 +25,8 @@ class GameState:
 
 
 class GameLogic:
-    """Core game logic."""
     
     def __init__(self) -> None:
-        """Initialize game logic."""
         self.level_manager = LevelManager()
         self.player = Player((0, 0))
         self.lava = Lava([])
@@ -52,21 +47,11 @@ class GameLogic:
         
         self.load_current_level()    
     
-    def _get_box_at(self, pos: Tuple[int, int]) -> Optional[Box]:
-        """Find if a box is at a given (x, y) position."""
-        for box in self.boxes:
-            if box.get_position() == pos:
-                return box
-        return None
-    
     def load_current_level(self) -> None:
-        """Load the current level."""
         level_data = self.level_manager.get_current_level()
         
-        # Create a copy of the grid data
         grid_data = deepcopy(level_data.grid)
-        
-        # Create Grid object from processed grid data
+
         self.grid = Grid(grid_data)
         
         self.player.set_position(level_data.initial_pos)
@@ -75,10 +60,8 @@ class GameLogic:
         
         self.exit_keys = [ExitKey(pos) for pos in level_data.exit_keys_poses]
         
-        # Initialize lava with extracted positions
         self.lava.reset(level_data.lava_poses)
-        
-        # Initialize boxes
+
         self.boxes = [Box(pos) for pos in level_data.box_poses]
         
         self.temp_walls = []
@@ -96,9 +79,7 @@ class GameLogic:
         self.level_complete = False
     
     def save_state(self) -> None:
-        """Save current state for undo."""
         state = GameState(
-            # grid_data=self.grid.to_char_grid(),
             player_pos=self.player.get_position(),
             lava_positions=list(self.lava.get_positions()),
             box_positions=[box.get_position() for box in self.boxes],
@@ -109,17 +90,8 @@ class GameLogic:
             moves=self.moves
         )
         self.history.append(state)
-        
-        # Limit history size
-        if len(self.history) > MAX_UNDO_HISTORY:
-            self.history.pop(0)
     
     def undo(self) -> bool:
-        """Undo last move.
-        
-        Returns:
-            True if undo was successful
-        """
         if not self.history:
             return False
         
@@ -150,7 +122,6 @@ class GameLogic:
             for pos in tiles_to_revert:
                 self.grid.set_tile_type(pos[0], pos[1], TileType.EMPTY)
 
-        # 3. Restore the list of altered tiles to its previous state
         self.altered_tile_positions = state.altered_tile_positions
         
         self.moves = state.moves
@@ -160,32 +131,27 @@ class GameLogic:
         return True
     
     def reset_level(self) -> None:
-        """Reset current level."""
         self.load_current_level()
         
+    def next_level(self) -> bool:
+        if self.level_manager.next_level():
+            self.load_current_level()
+            return True
+        return False
+        
     def _get_active_temp_wall_at(self, pos: Tuple[int, int]) -> Optional[TemporaryWall]:
-        """Get active temporary wall at position."""
         for wall in self.temp_walls:
             if wall.get_position() == pos and wall.is_blocking():
                 return wall
         return None
     
     def _get_temp_wall_at(self, pos: Tuple[int, int]) -> Optional[TemporaryWall]:
-        """Get active temporary wall at position."""
         for wall in self.temp_walls:
             if wall.get_position() == pos:
                 return wall
         return None
     
     def can_move_to(self, pos: Tuple[int, int]) -> bool:
-        """Check if position is walkable.
-        
-        Args:
-            pos: Position to check as (x, y)
-            
-        Returns:
-            True if position is walkable
-        """
         x, y = pos
         
         if not self.grid:
@@ -200,7 +166,6 @@ class GameLogic:
         return self.grid.is_walkable(x, y)
     
     def move_player(self, direction: Direction) -> bool:
-        """Attempt to move player and push boxes."""
         
         if self.game_over or self.level_complete:
             return False
@@ -228,7 +193,13 @@ class GameLogic:
 
         return False
         
-        
+    def _get_box_at(self, pos: Tuple[int, int]) -> Optional[Box]:
+        """Find if a box is at a given (x, y) position."""
+        for box in self.boxes:
+            if box.get_position() == pos:
+                return box
+        return None
+    
     def _handle_box_push(self, box_to_push, box_pos: Tuple[int, int], direction: Direction) -> bool:
         """Handle pushing a box. Returns True if successful."""
         # Calculate where the box would move
@@ -285,9 +256,7 @@ class GameLogic:
         return True
 
     def _update_game_state(self) -> None:
-        """Update game state after a move."""
                 
-        # Update aqua (with temp wall blocking)
         self.aqua.update(
             self.grid, 
             [box.get_position() for box in self.boxes],
@@ -296,7 +265,6 @@ class GameLogic:
         
         self._handle_lava_aqua_collisions()
         
-        # Update lava (with temp wall blocking)
         self.lava.update(
             self.grid, 
             [box.get_position() for box in self.boxes],
@@ -305,7 +273,6 @@ class GameLogic:
         
         self._handle_lava_aqua_collisions()
         
-        # Update temporary walls (decrease duration)
         for wall in self.temp_walls:
             wall.update()
             
@@ -329,48 +296,26 @@ class GameLogic:
 
     
     def _check_game_state(self) -> None:
-        """Check if game is over or level is complete."""
         player_pos = self.player.get_position()
         
-        # Check for key collection
         for key in self.exit_keys:
-            # If player is at key position AND it's not already collected
             if key.is_at(player_pos) and not key.is_collected():
                 key.collect()
                 
-        # Check if all keys are collected
         all_keys_collected = True
         if self.exit_keys:
             all_keys_collected = all(key.is_collected() for key in self.exit_keys)
 
-        # Check if player reached exit
         if player_pos == self.exit_pos and all_keys_collected:
             self.level_complete = True
         
         if self.grid.get_tile_type(player_pos[0],player_pos[1]) == TileType.WALL:
             self.game_over = True
             
-        # Check if player is on lava
         if self.lava.is_at(player_pos):
             self.game_over = True
             
-    
-    def next_level(self) -> bool:
-        """Move to next level.
-        
-        Returns:
-            True if moved to next level
-        """
-        if self.level_manager.next_level():
-            self.load_current_level()
-            return True
-        return False
-    
-    
-    
-    
     # Helper methods
-    
     def get_level_name(self) -> str:
         """Get current level name."""
         return self.level_manager.get_current_level().name

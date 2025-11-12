@@ -7,7 +7,6 @@ from ..core.constants import Color, TILE_SIZE
 
 
 class Player:
-    """Player character."""
     
     def __init__(self, position: Tuple[int, int]) -> None:
         """Create a player entity.
@@ -15,8 +14,8 @@ class Player:
         Args:
             position: Starting position as (x, y) tuple
         """
-        # Store as list to allow modification, or use tuple
-        self._position = list(position)  # Convert to list for mutability
+        
+        self._position = list(position)  
         
     def get_position(self) -> Tuple[int, int]:
         """Get player's position.
