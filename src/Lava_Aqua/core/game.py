@@ -22,7 +22,7 @@ class GameState:
     lava_positions: List[Tuple[int, int]]
     aqua_positions: List[Tuple[int, int]]
     collected_key_indices: List[int]
-    temp_wall_data: List[Tuple[Tuple[int, int], int]]  # (position, remaining_duration)
+    temp_wall_data: List[Tuple[Tuple[int, int], int]]
     altered_tile_positions: list[Tuple[int,int]]
     moves: int
 
@@ -82,14 +82,13 @@ class GameLogic:
         self.boxes = [Box(pos) for pos in level_data.box_poses]
         
         self.temp_walls = []
-        # if hasattr(level, 'temp_walls') and level.temp_walls:
+
         for wall_data in level_data.temp_walls:
-            pos = tuple(wall_data['position'])  # [x, y] -> (x, y)
+            pos = tuple(wall_data['position'])
             duration = wall_data['duration']
             self.temp_walls.append(TemporaryWall(pos, duration))
         
         self.aqua.reset(level_data.aqua_poses)
-        
         
         self.moves = 0
         self.history = []
@@ -132,7 +131,6 @@ class GameLogic:
         for i, pos in enumerate(state.box_positions):
             self.boxes[i].set_position(pos)
             
-        # Restore temp walls
         for pos, duration in state.temp_wall_data:
             wall = self._get_temp_wall_at(pos)
             if wall:
@@ -148,7 +146,6 @@ class GameLogic:
         saved_altered_set = set(state.altered_tile_positions)
         tiles_to_revert = current_altered_set - saved_altered_set
 
-        # 2. Revert those specific tiles back to EMPTY (assuming they were EMPTY before)
         if self.grid:
             for pos in tiles_to_revert:
                 self.grid.set_tile_type(pos[0], pos[1], TileType.EMPTY)
@@ -191,18 +188,15 @@ class GameLogic:
         """
         x, y = pos
         
-        # Check if position is within bounds using Grid
         if not self.grid:
             return False
         
-        # Out of bounds check
         if y < 0 or y >= self.grid.get_height() or x < 0 or x >= self.grid.get_width():
             return False
         
         if self._get_active_temp_wall_at(pos):
             return False
     
-        # Use Grid's walkability check
         return self.grid.is_walkable(x, y)
     
     def move_player(self, direction: Direction) -> bool:
@@ -211,18 +205,16 @@ class GameLogic:
         if self.game_over or self.level_complete:
             return False
         
-        # 1. Determine new positions
+        
         dx, dy = direction.value
         current_pos = self.player.get_position()
         new_pos = (current_pos[0] + dx, current_pos[1] + dy)
-        # 2. Check if move is valid
+        
         if not self.can_move_to(new_pos):
-            return False  # Can't move into a wall
+            return False
 
-        # Check for a box at the new position
         box_to_push = self._get_box_at(new_pos)
 
-        # 3. Handle the two valid move types  
         move_successful = False
 
         if box_to_push:
@@ -230,12 +222,11 @@ class GameLogic:
         else:
             move_successful = self._handle_empty_space_move(new_pos)
 
-        # 4. Update game state if any move happened
         if move_successful:
             self._update_game_state() 
             return True
 
-        return False # Move was blocked
+        return False
         
         
     def _handle_box_push(self, box_to_push, box_pos: Tuple[int, int], direction: Direction) -> bool:
@@ -349,7 +340,7 @@ class GameLogic:
                 
         # Check if all keys are collected
         all_keys_collected = True
-        if self.exit_keys: # Only check if the list isn't empty
+        if self.exit_keys:
             all_keys_collected = all(key.is_collected() for key in self.exit_keys)
 
         # Check if player reached exit
@@ -418,10 +409,6 @@ class GameLogic:
         """
         return self.grid
     
-    
-    # ------------------------------------------------------------
-    # === STATE SNAPSHOT MANAGEMENT (NEW FOR SOLVERS) ===
-    # ------------------------------------------------------------
 
     def get_state(self) -> GameState:
         """Return a serializable snapshot of the current game state."""
@@ -504,15 +491,3 @@ class GameLogic:
             # Move failed or game over - restore and return None
             self.load_state(original_state)
             return None
-
-    def _clone_from(self, other: 'GameLogic') -> None:
-        """Deeply clone another GameLogic instance (for solvers if needed)."""
-        self.player.set_position(other.player.get_position())
-        self.lava.set_positions(set(other.lava.get_positions()))
-        self.aqua.set_positions(set(other.aqua.get_positions()))
-        for i, box in enumerate(self.boxes):
-            box.set_position(other.boxes[i].get_position())
-        self.moves = other.moves
-        self.game_over = other.game_over
-        self.level_complete = other.level_complete
-        self.altered_tile_positions = other.altered_tile_positions.copy()
