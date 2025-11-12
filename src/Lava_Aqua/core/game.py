@@ -151,7 +151,7 @@ class GameLogic:
                 return wall
         return None
     
-    def can_move_to(self, pos: Tuple[int, int]) -> bool:
+    def movable(self, pos: Tuple[int, int]) -> bool:
         x, y = pos
         
         if not self.grid:
@@ -175,7 +175,7 @@ class GameLogic:
         current_pos = self.player.get_position()
         new_pos = (current_pos[0] + dx, current_pos[1] + dy)
         
-        if not self.can_move_to(new_pos):
+        if not self.movable(new_pos):
             return False
 
         box_to_push = self._get_box_at(new_pos)
