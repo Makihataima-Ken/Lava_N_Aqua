@@ -157,9 +157,6 @@ class GameLogic:
         if not self.grid:
             return False
         
-        if y < 0 or y >= self.grid.get_height() or x < 0 or x >= self.grid.get_width():
-            return False
-        
         if self._get_active_temp_wall_at(pos):
             return False
     
