@@ -59,20 +59,3 @@ class BaseSolver(ABC):
         print(f"  Max depth: {self.stats['max_depth']}")
         print(f"  Time taken: {self.stats['time_taken']:.3f}s")
         print(f"  Solution length: {self.stats['solution_length']}")
-        
-        
-    # def visualize_solve(
-    #     self, game_logic: GameLogic
-    #     ) -> Generator[Tuple[List[Direction], bool], None, None]:
-    #     """
-    #     Generator that yields partial progress during solving.
-
-    #     Each yield returns (current_move_sequence, is_final)
-    #     - current_move_sequence: list of Directions representing current path or node.
-    #     - is_final: True if this yield is the final solution.
-    #     """
-    #     solution = self.solve(game_logic)
-    #     if solution:
-    #         yield solution, True
-    #     else:
-    #         yield [], True  # no solution case

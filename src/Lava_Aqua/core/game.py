@@ -15,12 +15,12 @@ from ..entities.exit_key import ExitKey
 @dataclass
 class GameState:
     player_pos: Tuple[int, int]
-    box_positions: List[Tuple[int, int]]
-    lava_positions: List[Tuple[int, int]]
-    aqua_positions: List[Tuple[int, int]]
-    collected_key_indices: List[int]
-    temp_wall_data: List[Tuple[Tuple[int, int], int]]
-    altered_tile_positions: list[Tuple[int,int]]
+    box_positions: set[Tuple[int, int]]
+    lava_positions: set[Tuple[int, int]]
+    aqua_positions: set[Tuple[int, int]]
+    collected_key_indices: set[int]
+    temp_wall_data: set[Tuple[Tuple[int, int], int]]
+    altered_tile_positions: set[Tuple[int,int]]
     moves: int
 
 
@@ -36,6 +36,7 @@ class GameLogic:
         self.exit_pos: Tuple[int, int] = (0, 0)
         self.moves = 0
         self.history: List[GameState] = []
+        
         self.game_over = False
         self.level_complete = False
 
@@ -81,9 +82,9 @@ class GameLogic:
     def save_state(self) -> None:
         state = GameState(
             player_pos=self.player.get_position(),
-            lava_positions=list(self.lava.get_positions()),
+            lava_positions=set(self.lava.get_positions()),
             box_positions=[box.get_position() for box in self.boxes],
-            aqua_positions = list(self.aqua.get_positions()),
+            aqua_positions = set(self.aqua.get_positions()),
             collected_key_indices = [i for i, key in enumerate(self.exit_keys) if key.is_collected()],
             temp_wall_data=[(wall.get_position(), wall.get_remaining_duration()) for wall in self.temp_walls],
             altered_tile_positions = self.altered_tile_positions.copy(),
@@ -159,7 +160,10 @@ class GameLogic:
         
         if self._get_active_temp_wall_at(pos):
             return False
-    
+
+        # if self.lava.is_at(pos):
+        #     return False
+        
         return self.grid.is_walkable(x, y)
     
     def move_player(self, direction: Direction) -> bool:
@@ -351,14 +355,16 @@ class GameLogic:
         """
         return self.grid
     
+    
+    # Algorithms helper functions ----------------------------------------------
 
     def get_state(self) -> GameState:
         """Return a serializable snapshot of the current game state."""
         return GameState(
             player_pos=self.player.get_position(),
             box_positions=[box.get_position() for box in self.boxes],
-            lava_positions=list(self.lava.get_positions()),
-            aqua_positions=list(self.aqua.get_positions()),
+            lava_positions=set(self.lava.get_positions()),
+            aqua_positions=set(self.aqua.get_positions()),
             collected_key_indices=[
                 i for i, key in enumerate(self.exit_keys) if key.is_collected()
             ],
@@ -406,14 +412,51 @@ class GameLogic:
         self.game_over = False
         self.level_complete = False
         self._check_game_state() 
+    
+    # excludes sure game overs    
+    def algorithmic_movable(self,direction:Direction) -> bool:
+        
+        dx, dy = direction.value
+        current_pos = self.player.get_position()
+        new_pos = (current_pos[0] + dx, current_pos[1] + dy)
+        neighbours_pos = [(new_pos[0]+ direction.value[0], new_pos[1] + direction.value[1]) for direction in Direction]
+        print(neighbours_pos)
+        for cell in neighbours_pos:
+            if self.lava.is_at(cell):
+                return False
+            
+        if self.movable(new_pos) and not self.lava.is_at(new_pos):   
+            box_to_push = self._get_box_at(new_pos)
+            if box_to_push:
+                # Check if box can be pushed
+                box_new_pos = (new_pos[0] + dx, new_pos[1] + dy)
+                if self._can_push_box(box_new_pos):
+                    return True
+                else:
+                    return False
+            
+            else: return True
+                    
+        return False
+                
+        
+    # used in solver mode to make actions list
+    def allowed_moves(self) -> List[Direction]:
+        """Get list of valid move directions from current state."""
+        valid_moves = []
+        for direction in Direction:
+            
+            if self.algorithmic_movable(direction):                    
+                valid_moves.append(direction)
+                
+        print(valid_moves)        
+        return valid_moves
 
     def simulate_move(self, direction: Direction) -> Optional[GameState]:
         """
         Simulate moving the player WITHOUT deepcopy.
         
         Returns a new GameState if valid move, otherwise None.
-        
-        OPTIMIZED VERSION - Much faster!
         """
         # Save current state (lightweight)
         original_state = self.get_state()
@@ -433,3 +476,6 @@ class GameLogic:
             # Move failed or game over - restore and return None
             self.load_state(original_state)
             return None
+        
+    def is_level_completed(self)->bool:
+        return self.level_complete

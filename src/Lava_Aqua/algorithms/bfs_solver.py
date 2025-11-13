@@ -29,8 +29,10 @@ class BFSSolver(BaseSolver):
         # Reset stats
         self.reset_stats()
         
+        simulation = deepcopy(game_logic)
+        
         # Get initial state
-        initial_state = game_logic.get_state()
+        initial_state = simulation.get_state()
         
         # Queue: (state, path_to_reach_state)
         queue = deque([(initial_state, [])])
@@ -40,7 +42,7 @@ class BFSSolver(BaseSolver):
         visited.add(self._hash_state(initial_state))
         
         # All possible moves
-        moves = [Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT]
+        # moves = [Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT]
         
         while queue:
             current_state, path = queue.popleft()
@@ -55,16 +57,21 @@ class BFSSolver(BaseSolver):
                 continue
             
             # Load this state into game logic
-            game_logic.load_state(current_state)
-            print(game_logic.player.get_position())
+            simulation.load_state(current_state)
+            print(simulation.player.get_position())
+            
+            # All possible moves (pruned as possible)
+            moves = simulation.allowed_moves()
+            
             # Check if we've won
-            if game_logic.level_complete:
+            if simulation.is_level_completed():
+                # game_logic.load_state(initial_state)
                 return path
             
             # Try all possible moves
             for move in moves:
-                # Simulate the move (doesn't affect current game_logic state)
-                new_state = game_logic.simulate_move(move)
+                # Simulate the move (doesn't affect current simulation state)
+                new_state = simulation.simulate_move(move)
                 
                 if new_state is None:
                     # Invalid move

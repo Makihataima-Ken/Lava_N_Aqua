@@ -84,7 +84,7 @@ class SolverController(BaseController):
         if self.solving_in_progress:
             return None, None
         
-        # Return next move from solution
+        # # Return next move from solution
         if self.current_move_index < len(self.solution_moves):
             move = self.solution_moves[self.current_move_index]
             self.current_move_index += 1
