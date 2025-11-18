@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from typing import List, Optional, Generator, Tuple
-from src.Lava_Aqua.core.game import GameLogic
+from src.Lava_Aqua.core.game import GameLogic, GameState
 from src.Lava_Aqua.core.constants import Direction
 
 
@@ -59,3 +59,19 @@ class BaseSolver(ABC):
         print(f"  Max depth: {self.stats['max_depth']}")
         print(f"  Time taken: {self.stats['time_taken']:.3f}s")
         print(f"  Solution length: {self.stats['solution_length']}")
+        
+    def _hash_state(self, state: GameState) -> str:
+        """
+        Create a simple hash of the game state.
+        
+        This is used to detect if we've visited a state before.
+        You may want to include more or fewer elements depending on your needs.
+        """
+        # Hash based on player position, box positions, and collected keys
+        player_hash = str(state.player_pos)
+        boxes_hash = str(sorted(state.box_positions))
+        keys_hash = str(sorted(state.collected_key_indices))
+        lava_hash = str(sorted(state.lava_positions))
+        aqua_hash = str(sorted(state.aqua_positions))
+        
+        return f"{player_hash}|{boxes_hash}|{keys_hash}|{lava_hash}|{aqua_hash}"

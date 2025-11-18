@@ -1,5 +1,3 @@
-"""Controller for algorithm-based solver mode."""
-
 from typing import Optional
 import time
 import pygame
@@ -101,7 +99,7 @@ class SolverController(BaseController):
         if not self.solve_current_level():
             print("Cannot proceed without solution!")
             pygame.time.wait(2000)
-            return GameResult.QUIT
+            return GameResult.CONTINUE
         
         # Then execute the solution
         self.running = True
@@ -112,7 +110,7 @@ class SolverController(BaseController):
             if action == 'quit':
                 return GameResult.QUIT
             elif action == 'pause':
-                self._handle_pause()
+                self.pause_level()
                 continue
             
             if movement:
@@ -149,22 +147,6 @@ class SolverController(BaseController):
             self.render_frame()
             pygame.time.wait(2000)
     
-    def _handle_pause(self) -> None:
-        """Handle pause state during solving."""
-        print("Paused. Press SPACE to continue, ESC to quit")
-        paused = True
-        while paused:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.running = False
-                    paused = False
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_SPACE:
-                        paused = False
-                    elif event.key == pygame.K_ESCAPE:
-                        self.running = False
-                        paused = False
-            time.sleep(0.05)
     
     def on_level_start(self) -> None:
         """Called when level starts."""

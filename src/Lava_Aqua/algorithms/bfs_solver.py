@@ -5,7 +5,7 @@ from typing import List, Optional, Set, Tuple
 from copy import deepcopy
 
 from src.Lava_Aqua.algorithms.base_solver import BaseSolver
-from src.Lava_Aqua.core.game import GameLogic, GameState
+from src.Lava_Aqua.core.game import GameLogic
 from src.Lava_Aqua.core.constants import Direction
 
 
@@ -58,7 +58,7 @@ class BFSSolver(BaseSolver):
             
             # Load this state into game logic
             simulation.load_state(current_state)
-            print(simulation.player.get_position())
+            # print(simulation.player.get_position())
             
             # All possible moves (pruned as possible)
             moves = simulation.allowed_moves()
@@ -91,19 +91,3 @@ class BFSSolver(BaseSolver):
         
         # No solution found
         return None
-    
-    def _hash_state(self, state: GameState) -> str:
-        """
-        Create a simple hash of the game state.
-        
-        This is used to detect if we've visited a state before.
-        You may want to include more or fewer elements depending on your needs.
-        """
-        # Hash based on player position, box positions, and collected keys
-        player_hash = str(state.player_pos)
-        boxes_hash = str(sorted(state.box_positions))
-        keys_hash = str(sorted(state.collected_key_indices))
-        lava_hash = str(sorted(state.lava_positions))
-        aqua_hash = str(sorted(state.aqua_positions))
-        
-        return f"{player_hash}|{boxes_hash}|{keys_hash}|{lava_hash}|{aqua_hash}"

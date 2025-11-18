@@ -1,11 +1,9 @@
-"""Concrete controller implementations for different play modes."""
-
 from typing import Optional
 import time
 import pygame
 
 from src.Lava_Aqua.core.game import GameLogic
-from src.Lava_Aqua.core.constants import Direction
+from src.Lava_Aqua.core.constants import Direction, GameResult
 from .base_controller import BaseController
 
 
@@ -43,6 +41,41 @@ class PlayerController(BaseController):
                     return None, 'quit'
         
         return None, None
+    
+    def run_level(self) -> GameResult:
+        """Run the player mode loop for a level."""
+        
+        self.on_level_start()
+        self.running = True
+        
+        while self.running:
+            # Process input (mode-specific)
+            movement, action = self.process_input()
+            
+            # Handle actions
+            if action == 'quit':
+                return GameResult.QUIT
+            elif action == 'reset':
+                self.reset_level()
+                continue
+            elif action == 'undo':
+                self.undo_move()
+            elif movement:
+                self.execute_move(movement)
+            
+            # Check game state
+            if self.game_logic.game_over:
+                result = self.handle_game_over_state()
+                if result != GameResult.CONTINUE:
+                    return result
+            
+            if self.game_logic.level_complete:
+                return self.handle_victory_state()
+            
+            # Render
+            self.render_frame()
+        
+        return GameResult.QUIT
     
     def on_level_start(self) -> None:
         """Called when level starts."""

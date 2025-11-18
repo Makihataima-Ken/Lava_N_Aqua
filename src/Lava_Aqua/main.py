@@ -8,7 +8,7 @@ from src.Lava_Aqua.algorithms import BFSSolver
 
 def main_user_play():
     """Run game in user play mode."""
-    app = GameApplication(controller_class=PlayerController)
+    app = GameApplication()
     app.run()
 
 
@@ -16,7 +16,7 @@ def main_solver_bfs():
     """Run game with BFS solver."""
     app = GameApplication()
     solver = BFSSolver()
-    app.run_with_solver(
+    app.run(
         solver=solver,
         move_delay=0.3,
         visualize=True

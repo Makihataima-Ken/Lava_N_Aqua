@@ -160,9 +160,6 @@ class GameLogic:
         
         if self._get_active_temp_wall_at(pos):
             return False
-
-        # if self.lava.is_at(pos):
-        #     return False
         
         return self.grid.is_walkable(x, y)
     
@@ -331,7 +328,7 @@ class GameLogic:
     
     def get_level_description(self) -> str:
         """Get current level description."""
-        return f"Lava & Aqua - Level {self.get_level_number()}/{self.get_total_levels()}: {self.get_level_name()}"
+        return f"{self.get_level_number()}/{self.get_total_levels()}: {self.get_level_name()}"
     
     def is_last_level(self) -> bool:
         """Check if on last level."""
@@ -420,7 +417,7 @@ class GameLogic:
         current_pos = self.player.get_position()
         new_pos = (current_pos[0] + dx, current_pos[1] + dy)
         neighbours_pos = [(new_pos[0]+ direction.value[0], new_pos[1] + direction.value[1]) for direction in Direction]
-        print(neighbours_pos)
+        # print(neighbours_pos)
         for cell in neighbours_pos:
             if self.lava.is_at(cell):
                 return False
@@ -449,7 +446,7 @@ class GameLogic:
             if self.algorithmic_movable(direction):                    
                 valid_moves.append(direction)
                 
-        print(valid_moves)        
+        # print(valid_moves)        
         return valid_moves
 
     def simulate_move(self, direction: Direction) -> Optional[GameState]:

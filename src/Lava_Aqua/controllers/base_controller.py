@@ -1,5 +1,3 @@
-"""Base controller"""
-
 from abc import ABC, abstractmethod
 import time
 from typing import Optional
@@ -66,43 +64,14 @@ class BaseController(ABC):
         """Called when game over occurs. Override for custom behavior."""
         pass
     
+    @abstractmethod
     def run_level(self) -> GameResult:
         """Run the main game loop for a level.
         
         Returns:
             GameResult indicating outcome
         """
-        self.on_level_start()
-        self.running = True
-        
-        while self.running:
-            # Process input (mode-specific)
-            movement, action = self.process_input()
-            
-            # Handle actions
-            if action == 'quit':
-                return GameResult.QUIT
-            elif action == 'reset':
-                self.reset_level()
-                continue
-            elif action == 'undo':
-                self.undo_move()
-            elif movement:
-                self.execute_move(movement)
-            
-            # Check game state
-            if self.game_logic.game_over:
-                result = self.handle_game_over_state()
-                if result != GameResult.CONTINUE:
-                    return result
-            
-            if self.game_logic.level_complete:
-                return self.handle_victory_state()
-            
-            # Render
-            self.render_frame()
-        
-        return GameResult.QUIT
+        pass
     
     def execute_move(self, direction: Direction) -> bool:
         """Execute a player move.
@@ -131,6 +100,23 @@ class BaseController(ABC):
             print(f"Undo! (Moves: {self.game_logic.moves})")
             return True
         return False
+    
+    def pause_level(self) -> None:
+        """Handle pause state during solving."""
+        print("Paused. Press SPACE to continue, ESC to quit")
+        paused = True
+        while paused:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+                    paused = False
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        paused = False
+                    elif event.key == pygame.K_ESCAPE:
+                        self.running = False
+                        paused = False
+            time.sleep(0.05)
     
     def render_frame(self) -> None:
         """Render the current game state."""
