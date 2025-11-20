@@ -1,5 +1,3 @@
-"""Game constants and configuration."""
-
 from enum import Enum
 from pathlib import Path
 

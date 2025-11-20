@@ -84,8 +84,6 @@ Command-line options (from `src/Lava_Aqua/main.py`):
 python -m src.Lava_Aqua.main --mode play
 ```
 
-- Run the BFS solver with visualization and a 0.3s move delay:
-
 **Adding a level**
 
 1. Create a JSON file in `assets/levels/` following the format of

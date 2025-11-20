@@ -1,7 +1,5 @@
-"""Base solver interface for game algorithms."""
-
 from abc import ABC, abstractmethod
-from typing import List, Optional, Generator, Tuple
+from typing import List, Optional
 from src.Lava_Aqua.core.game import GameLogic, GameState
 from src.Lava_Aqua.core.constants import Direction
 

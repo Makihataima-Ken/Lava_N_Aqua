@@ -58,11 +58,11 @@ class SolverController(BaseController):
             self.solver.stats['time_taken'] = solve_time
             self.solver.stats['solution_length'] = len(solution)
             
-            print(f"✓ Solution found: {len(solution)} moves in {solve_time:.3f}s")
+            print(f"Solution found: {len(solution)} moves in {solve_time:.3f}s")
             self.solver.print_stats()
             return True
         else:
-            print(f"✗ No solution found (searched for {solve_time:.3f}s)")
+            print(f"No solution found (searched for {solve_time:.3f}s)")
             self.solver.print_stats()
             return False
     
@@ -158,10 +158,10 @@ class SolverController(BaseController):
     def on_level_complete(self) -> None:
         """Called when level is completed."""
         stats = self.get_stats()
-        print(f"\n✓ Solution verified successfully!")
+        print(f"\n Solution verified successfully!")
         print(f"  Moves executed: {stats['moves']}")
         print(f"  Execution time: {stats['elapsed_time']:.1f}s")
     
     def on_game_over(self) -> None:
         """Called when game over occurs."""
-        print(f"✗ Solution failed at move {self.current_move_index}")
+        print(f" Solution failed at move {self.current_move_index}")

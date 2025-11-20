@@ -1,5 +1,3 @@
-"""Main game application using controller factory architecture."""
-
 import pygame
 import sys
 from typing import Optional
@@ -24,7 +22,7 @@ class GameApplication:
     
     def _print_welcome(self) -> None:
         """Print welcome message."""
-        print("🎮 Lava & Aqua")
+        print(" Lava & Aqua")
         print("=" * 40)
         print("Controls:")
         print("  WASD or Arrow Keys - Move")
@@ -38,9 +36,9 @@ class GameApplication:
         try:
             self.game_logic = GameLogic()
             total_levels = self.game_logic.get_total_levels()
-            print(f"\n📦 Loaded {total_levels} levels")
+            print(f"\n Loaded {total_levels} levels")
         except Exception as e:
-            print(f"❌ Error loading game: {e}")
+            print(f"Error loading game: {e}")
             import traceback
             traceback.print_exc()
             sys.exit(1)
@@ -58,7 +56,7 @@ class GameApplication:
         while not self.game_logic.is_last_level() or not self.game_logic.level_complete:
             
             try:
-                print(f"\n🔥 Lava & Aqua - Level  {self.game_logic.get_level_description()}")
+                print(f"\n Lava & Aqua - Level  {self.game_logic.get_level_description()}")
                 
                 self.current_controller = ControllerFactory.create_player(self.game_logic)
                 result = self.current_controller.run_level()
@@ -76,10 +74,10 @@ class GameApplication:
                             break
                 elif result == GameResult.RESTART:
                     self.game_logic.reset_level()
-                    print(f"💀 Restarting level {self.game_logic.get_level_description()}")
+                    print(f" Restarting level {self.game_logic.get_level_description()}")
                     
             except Exception as e:
-                print(f"❌ Error running level: {e}")
+                print(f" Error running level: {e}")
                 import traceback
                 traceback.print_exc()
                 break
@@ -95,7 +93,7 @@ class GameApplication:
             move_delay: Delay between moves in seconds
             visualize: Whether to render the solving process
         """
-        print(f"\n🤖 Starting solver mode with {solver.name}")
+        print(f"\n Starting solver mode with {solver.name}")
         print("=" * 60)
         
         total_stats = {
@@ -109,7 +107,7 @@ class GameApplication:
             while not self.game_logic.is_last_level() or not self.game_logic.level_complete:
                 
                 try:
-                    print(f"\n🔥 Lava & Aqua - Level {self.game_logic.get_level_description()}")
+                    print(f"\n Lava & Aqua - Level {self.game_logic.get_level_description()}")
                     
                     self.current_controller = ControllerFactory.create_solver(
                         self.game_logic,
@@ -145,14 +143,14 @@ class GameApplication:
                         total_stats['failed_levels'].append(
                             (self.game_logic.get_level_description())
                         )
-                        print(f"\n⚠️ Solver failed on level {self.game_logic.get_level_description()}")
+                        print(f"\n Solver failed on level {self.game_logic.get_level_description()}")
 
                         if not self.game_logic.next_level():
                             print("No more levels!")
                             break
                         
                 except Exception as e:
-                    print(f"❌ Error solving level: {e}")
+                    print(f" Error solving level: {e}")
                     import traceback
                     traceback.print_exc()
                     break
@@ -188,8 +186,7 @@ class GameApplication:
     def _print_victory(self) -> None:
         """Print victory message."""
         print("\n" + "=" * 40)
-        print("CONGRATULATIONS!")
-        print("You beat all levels!")
+        print("CONGRATULATIONS! \nYou beat all levels!")
         print("=" * 40)
     
     def _cleanup(self) -> None:

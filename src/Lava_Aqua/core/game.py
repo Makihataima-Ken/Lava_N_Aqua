@@ -74,6 +74,8 @@ class GameLogic:
         
         self.aqua.reset(level_data.aqua_poses)
         
+        self.allowed_moves()
+        
         self.moves = 0
         self.history = []
         self.game_over = False
@@ -175,6 +177,7 @@ class GameLogic:
         
         if not self.movable(new_pos):
             return False
+        
 
         box_to_push = self._get_box_at(new_pos)
 
@@ -187,6 +190,7 @@ class GameLogic:
 
         if move_successful:
             self._update_game_state() 
+            self.allowed_moves()
             return True
 
         return False

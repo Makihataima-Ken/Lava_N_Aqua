@@ -1,5 +1,3 @@
-"""Level management and loading."""
-
 import json
 from pathlib import Path
 from typing import List, Tuple, Optional, Dict, Any
