@@ -21,6 +21,17 @@ def main_solver_bfs():
         move_delay=0.3,
         visualize=True
     )
+    
+def main_solver_dfs():
+    """Run game with DFS solver."""
+    from src.Lava_Aqua.algorithms.dfs_solver import DFSSolver
+    app = GameApplication()
+    solver = DFSSolver()
+    app.run(
+        solver=solver,
+        move_delay=0.1,
+        visualize=True
+    )
 
 def main():
     """Run game with command-line arguments."""
@@ -57,6 +68,8 @@ def main():
         main_user_play()
     elif args.mode == 'bfs':
         main_solver_bfs()
+    elif args.mode == 'dfs':
+        main_solver_dfs()
     
 
 

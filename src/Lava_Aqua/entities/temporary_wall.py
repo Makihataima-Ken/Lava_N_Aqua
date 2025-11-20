@@ -47,7 +47,7 @@ class TemporaryWall:
         if self._remaining_duration <= 0:
             self._expired = True
         elif self._expired:
-            print("Reviving temporary wall")
+            # print("Reviving temporary wall")
             self._expired = False
             
     

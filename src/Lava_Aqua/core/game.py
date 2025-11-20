@@ -420,10 +420,12 @@ class GameLogic:
         dx, dy = direction.value
         current_pos = self.player.get_position()
         new_pos = (current_pos[0] + dx, current_pos[1] + dy)
+        
         neighbours_pos = [(new_pos[0]+ direction.value[0], new_pos[1] + direction.value[1]) for direction in Direction]
         # print(neighbours_pos)
         for cell in neighbours_pos:
-            if self.lava.is_at(cell):
+            cell_box = (cell[0]-dx, cell[1]-dy)
+            if self.lava.is_at(cell) and not self._get_box_at(cell_box):
                 return False
             
         if self.movable(new_pos) and not self.lava.is_at(new_pos):   
@@ -439,7 +441,6 @@ class GameLogic:
             else: return True
                     
         return False
-                
         
     # used in solver mode to make actions list
     def allowed_moves(self) -> List[Direction]:

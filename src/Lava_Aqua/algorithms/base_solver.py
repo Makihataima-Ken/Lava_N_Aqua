@@ -71,5 +71,6 @@ class BaseSolver(ABC):
         keys_hash = str(sorted(state.collected_key_indices))
         lava_hash = str(sorted(state.lava_positions))
         aqua_hash = str(sorted(state.aqua_positions))
+        temp_wall_hash = str(sorted(state.temp_wall_data))
         
-        return f"{player_hash}|{boxes_hash}|{keys_hash}|{lava_hash}|{aqua_hash}"
+        return f"{player_hash}|{boxes_hash}|{keys_hash}|{lava_hash}|{aqua_hash}{temp_wall_hash}"
