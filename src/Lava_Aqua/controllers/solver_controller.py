@@ -7,6 +7,8 @@ from src.Lava_Aqua.core.constants import Direction, GameResult
 from src.Lava_Aqua.algorithms.base_solver import BaseSolver
 from .base_controller import BaseController
 
+import tracemalloc
+
 
 class SolverController(BaseController):
     """Controller for algorithm-based solver mode."""
@@ -42,10 +44,18 @@ class SolverController(BaseController):
         # Reset solver stats
         self.solver.reset_stats()
         
+        tracemalloc.start()
+        
         # Run solver
         start_time = time.time()
         solution = self.solver.solve(self.game_logic)
         solve_time = time.time() - start_time
+        
+        current, peak = tracemalloc.get_traced_memory()
+        print(f"Current memory usage: {current/1024:.2f} KB")
+        print(f"Peak memory usage: {peak/1024:.2f} KB")
+
+        tracemalloc.stop()
         
         self.solving_in_progress = False
         

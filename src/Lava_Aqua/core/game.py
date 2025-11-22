@@ -421,12 +421,12 @@ class GameLogic:
         current_pos = self.player.get_position()
         new_pos = (current_pos[0] + dx, current_pos[1] + dy)
         
-        neighbours_pos = [(new_pos[0]+ direction.value[0], new_pos[1] + direction.value[1]) for direction in Direction]
-        # print(neighbours_pos)
-        for cell in neighbours_pos:
-            cell_box = (cell[0]-dx, cell[1]-dy)
-            if self.lava.is_at(cell) and not self._get_box_at(cell_box):
-                return False
+        # neighbours_pos = [(new_pos[0]+ direction.value[0], new_pos[1] + direction.value[1]) for direction in Direction]
+        # # print(neighbours_pos)
+        # for cell in neighbours_pos:
+        #     cell_box = (cell[0]-dx, cell[1]-dy)
+        #     if self.lava.is_at(cell) and not self._get_box_at(cell_box):
+        #         return False
             
         if self.movable(new_pos) and not self.lava.is_at(new_pos):   
             box_to_push = self._get_box_at(new_pos)

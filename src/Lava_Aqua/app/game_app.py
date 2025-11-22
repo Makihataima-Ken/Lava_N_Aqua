@@ -17,7 +17,6 @@ class GameApplication:
         self.game_logic = None
         self.current_controller: Optional[BaseController] = None
         
-        # self._print_welcome()
         self._initialize_game()
     
     def _print_welcome(self) -> None:
@@ -53,6 +52,7 @@ class GameApplication:
             
     def _run_player_mode(self) -> None:
         """Run the main game loop (for user play mode)."""
+        
         self._print_welcome()
         
         while not self.game_logic.is_last_level() or not self.game_logic.level_complete:
@@ -143,7 +143,7 @@ class GameApplication:
                     elif result == GameResult.CONTINUE:
                         # Solver failed
                         total_stats['failed_levels'].append(
-                            (self.game_logic.get_level_description())
+                            (self.game_logic.get_level_number(),self.game_logic.get_level_name())
                         )
                         print(f"\n Solver failed on level {self.game_logic.get_level_description()}")
 

@@ -1,5 +1,3 @@
-"""Main game application entry point."""
-
 from src.Lava_Aqua.app.game_app import GameApplication
 
 from src.Lava_Aqua.core.game import GameLogic
@@ -32,6 +30,16 @@ def main_solver_dfs():
         move_delay=0.1,
         visualize=True
     )
+    
+# def main_solver_aStar():
+#     from src.Lava_Aqua.algorithms.aStar_solver import AStarSolver
+#     app = GameApplication()
+#     solver = AStarSolver()
+#     app.run(
+#         solver=solver,
+#         move_delay=0.1,
+#         visualize=True
+#     )
 
 def main():
     """Run game with command-line arguments."""
@@ -40,7 +48,7 @@ def main():
     parser = argparse.ArgumentParser(description='Lava & Aqua Game')
     parser.add_argument(
         '--mode',
-        choices=['play', 'bfs', 'dfs', 'random'],
+        choices=['play', 'bfs', 'dfs', 'random','aStar'],
         default='play',
         help='Game mode'
     )
@@ -70,7 +78,8 @@ def main():
         main_solver_bfs()
     elif args.mode == 'dfs':
         main_solver_dfs()
-    
+    # elif args.mode == 'aStar':
+    #     main_solver_aStar()
 
 
 if __name__ == "__main__":

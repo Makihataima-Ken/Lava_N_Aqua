@@ -1,5 +1,3 @@
-"""BFS solver implementation example."""
-
 from collections import deque
 from typing import List, Optional, Set, Tuple
 from copy import deepcopy
@@ -8,13 +6,15 @@ from src.Lava_Aqua.algorithms.base_solver import BaseSolver
 from src.Lava_Aqua.core.game import GameLogic
 from src.Lava_Aqua.core.constants import Direction
 
+import time
+
 
 class BFSSolver(BaseSolver):
     """Breadth-First Search solver implementation."""
     
     def __init__(self):
         super().__init__(name="BFS Solver")
-        self.max_moves = 100  # Prevent infinite loops
+        self.max_moves = 35  # Prevent infinite loops
     
     def solve(self, game_logic: GameLogic) -> Optional[List[Direction]]:
         """
@@ -26,6 +26,9 @@ class BFSSolver(BaseSolver):
         3. Track visited states to avoid cycles
         4. Return path when level_complete is True
         """
+        
+        start_time = time.time()
+        
         # Reset stats
         self.reset_stats()
         
@@ -41,9 +44,6 @@ class BFSSolver(BaseSolver):
         visited: Set[str] = set()
         visited.add(self._hash_state(initial_state))
         
-        # All possible moves
-        # moves = [Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT]
-        
         while queue:
             current_state, path = queue.popleft()
             self.stats['nodes_explored'] += 1
@@ -56,6 +56,8 @@ class BFSSolver(BaseSolver):
             if len(path) >= self.max_moves:
                 continue
             
+            print(time.time()-start_time,f"BFS exploring node at depth {len(path)}, total explored: {self.stats['nodes_explored']}")
+            
             # Load this state into game logic
             simulation.load_state(current_state)
             # print(simulation.player.get_position())
@@ -65,7 +67,6 @@ class BFSSolver(BaseSolver):
             
             # Check if we've won
             if simulation.is_level_completed():
-                # game_logic.load_state(initial_state)
                 return path
             
             # Try all possible moves
