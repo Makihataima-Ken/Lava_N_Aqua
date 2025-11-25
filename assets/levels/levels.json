@@ -349,5 +349,36 @@
                     "##W         W###",
                     "################"
                 ]
+            },
+            {
+                "name": "Gas Station",
+                "grid": [
+                    "################",
+                    "##  DWWW#     ##",
+                    "##  ##B##     ##",
+                    "##      D   #D##",
+                    "##    P D   TL##",
+                    "##      D   TL##",
+                    "#####TTT#   TL##",
+                    "#####LLL#   ####",
+                    "#########   TL##",
+                    "##### E T   TL##",
+                    "################"
+                ],
+                "temp_walls":[
+                    {"position": [12,4], "duration": 32},
+                    {"position": [12,5], "duration": 32},
+                    {"position": [12,6], "duration": 32},
+
+                    {"position": [5,6], "duration": 13},
+                    {"position": [6,6], "duration": 13},
+                    {"position": [7,6], "duration": 13},
+
+                    {"position": [12,8], "duration": 38},
+                    {"position": [12,9], "duration": 38},
+
+                    {"position": [8,9], "duration": 40}
+
+                ]
             }
 ]
