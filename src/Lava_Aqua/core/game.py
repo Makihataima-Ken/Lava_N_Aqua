@@ -455,27 +455,18 @@ class GameLogic:
         return valid_moves
 
     def simulate_move(self, direction: Direction) -> Optional[GameState]:
-        """
-        Simulate moving the player WITHOUT deepcopy.
-        
-        Returns a new GameState if valid move, otherwise None.
-        """
-        # Save current state (lightweight)
+
         original_state = self.get_state()
-        
-        # Try the move (modifies self temporarily)
+
         moved = self.move_player(direction)
         
         if moved and not self.game_over:
-            # Capture the resulting state
             result_state = self.get_state()
             
-            # Restore original state
             self.load_state(original_state)
             
             return result_state
         else:
-            # Move failed or game over - restore and return None
             self.load_state(original_state)
             return None
         

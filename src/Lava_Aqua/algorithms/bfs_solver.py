@@ -19,15 +19,10 @@ class BFSSolver(BaseSolver):
         
         start_time = time.time()
         
-        # Reset stats
-        self.reset_stats()
-        
         simulation = deepcopy(game_logic)
         
-        # Get initial state
         initial_state = simulation.get_state()
         
-        # Queue: (state, path_to_reach_state)
         queue = deque([(initial_state, [])])
         
         visited: Set[str] = set()
