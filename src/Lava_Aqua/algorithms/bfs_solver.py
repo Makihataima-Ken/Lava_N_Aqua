@@ -13,28 +13,30 @@ class BFSSolver(BaseSolver):
     """Breadth-First Search solver implementation."""
     
     def __init__(self):
-        super().__init__(name="BFS Solver")
+        super().__init__(name="BFS")
     
     def solve(self, game_logic: GameLogic) -> Optional[List[Direction]]:
         
-        start_time = time.time()
+        # start_time = time.time()
         
-        simulation = deepcopy(game_logic)
+        simulation = deepcopy(game_logic)        
         
-        initial_state = simulation.get_state()
+        # renderer = self._setup_renderer(simulation=simulation)
         
-        queue = deque([(initial_state, [])])
-        
-        visited: Set[str] = set()
-        visited.add(self._hash_state(initial_state))
-        
+        init_state = simulation.get_state()
+       
+        queue = deque([(init_state,[])])
+       
+        visited = set()
+        visited.add(self._hash_state(init_state))
+       
         while queue:
-            current_state, path = queue.popleft()
+            currrent_state, path = queue.popleft()
             self.stats['nodes_explored'] += 1
-            
-            print(time.time()-start_time,f"BFS exploring node at depth {len(path)}, total explored: {self.stats['nodes_explored']}")
-            
-            simulation.load_state(current_state)
+           
+            simulation.load_state(currrent_state)
+
+            # print(time.time()-start_time, f"BFS exploring node at depth {len(path)}, total explored: {self.stats['nodes_explored']}")
             
             if simulation.is_level_completed():
                 return path
@@ -42,20 +44,19 @@ class BFSSolver(BaseSolver):
             moves = simulation.allowed_moves()
             
             for move in moves:
-                
                 new_state = simulation.simulate_move(move)
                 
+                # renderer.draw_game(simulation, animation_time=0.1)
+
                 if new_state is None:
                     continue
                 
                 state_hash = self._hash_state(new_state)
-                
                 if state_hash in visited:
                     continue
                 
                 visited.add(state_hash)
-                
                 new_path = path + [move]
                 queue.append((new_state, new_path))
-        
+           
         return None

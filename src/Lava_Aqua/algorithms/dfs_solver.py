@@ -1,22 +1,25 @@
 import time
 from typing import List, Optional, Set
 from copy import deepcopy
+from src.Lava_Aqua.graphics.renderer import Renderer
 from src.Lava_Aqua.algorithms.base_solver import BaseSolver
 from src.Lava_Aqua.core.constants import Direction
 
 class DFSSolver(BaseSolver):
     """Depth-First Search solver implementation."""
     def __init__(self):
-        super().__init__(name="DFS Solver")
-        self.max_depth = 35
+        super().__init__(name="DFS")
+        self.max_depth = 70
         
     def solve(self, game_logic) -> Optional[List[Direction]]:
         
-        start_time = time.time()
+        # start_time = time.time()
         
         self.reset_stats()
         
         simulation = deepcopy(game_logic)
+        
+        # renderer = self._setup_renderer(simulation=simulation)
         
         initial_state = simulation.get_state()
         
@@ -28,10 +31,10 @@ class DFSSolver(BaseSolver):
             current_state, path = stack.pop()
             self.stats['nodes_explored'] += 1
 
-            if len(path) >= self.max_depth:
-                continue
+            # if len(path) >= self.max_depth:
+            #     continue
             
-            print(time.time()-start_time, f"DFS exploring node at depth {len(path)}, total explored: {self.stats['nodes_explored']}")
+            # print(time.time()-start_time, f"DFS exploring node at depth {len(path)}, total explored: {self.stats['nodes_explored']}")
                 
             simulation.load_state(current_state)
 
@@ -43,6 +46,8 @@ class DFSSolver(BaseSolver):
             for move in moves:
 
                 new_state = simulation.simulate_move(move)
+                
+                # renderer.draw_game(simulation, animation_time=0.1)
                 
                 if new_state is None:
                     continue

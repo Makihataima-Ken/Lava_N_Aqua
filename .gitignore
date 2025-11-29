@@ -9,6 +9,11 @@ wheels/
 # Virtual environments
 .venv
 .vscode
+
+
 test.json
 temp_wall_test.json
 walls_test.json
+assignment.json
+
+solutions/

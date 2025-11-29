@@ -3,7 +3,7 @@ import time
 import pygame
 
 from src.Lava_Aqua.core.game import GameLogic
-from src.Lava_Aqua.core.constants import Direction, GameResult
+from src.Lava_Aqua.core.constants import Direction, GameResult, SOLUTIONS_DIR
 from src.Lava_Aqua.algorithms.base_solver import BaseSolver
 from .base_controller import BaseController
 
@@ -65,11 +65,12 @@ class SolverController(BaseController):
             self.solving_complete = False
             
             # Update stats
-            self.solver.stats['time_taken'] = solve_time
+            self.solver.stats['time_taken'] =  solve_time/60.0 if solve_time>60.0 else solve_time  # in minutes
             self.solver.stats['solution_length'] = len(solution)
             
             print(f"Solution found: {len(solution)} moves in {solve_time:.3f}s")
             self.solver.print_stats()
+            self.solver.save_to_json(SOLUTIONS_DIR / f"{self.solver.name}{self.game_logic.get_level_number()}.json")
             return True
         else:
             print(f"No solution found (searched for {solve_time:.3f}s)")
@@ -166,11 +167,12 @@ class SolverController(BaseController):
         print(f"{'='*60}")
     
     def on_level_complete(self) -> None:
-        """Called when level is completed."""
-        stats = self.get_stats()
-        print(f"\n Solution verified successfully!")
-        print(f"  Moves executed: {stats['moves']}")
-        print(f"  Execution time: {stats['elapsed_time']:.1f}s")
+        # """Called when level is completed."""
+        # stats = self.get_stats()
+        # print(f"\n Solution verified successfully!")
+        # print(f"  Moves executed: {stats['moves']}")
+        # print(f"  Execution time: {stats['elapsed_time']:.1f}s")
+        pass
     
     def on_game_over(self) -> None:
         """Called when game over occurs."""

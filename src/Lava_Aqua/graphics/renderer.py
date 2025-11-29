@@ -123,3 +123,15 @@ class Renderer:
     def flip(self) -> None:
         """Update the display."""
         pygame.display.flip()
+        
+    def draw_game(self,game_logic: GameLogic, animation_time: float = 0.0):
+            
+        self.clear()
+        self.draw_game_state(game_logic, animation_time)
+        self.draw_ui_info(
+            game_logic.get_level_number(),
+            game_logic.get_total_levels(),
+            game_logic.moves,
+            game_logic.lava.count()
+           )            
+        self.flip()
