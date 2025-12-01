@@ -17,3 +17,6 @@ walls_test.json
 assignment.json
 
 solutions/
+
+*.xls
+*.xlsx

@@ -18,6 +18,7 @@ class BaseSolver(ABC):
         self.name = name
         self.stats = {
             'nodes_explored': 0,
+            'nodes_generated': 0,
             'time_taken': 0.0,
             'solution_length': 0
         }
@@ -38,6 +39,7 @@ class BaseSolver(ABC):
         """Reset solver statistics."""
         self.stats = {
             'nodes_explored': 0,
+            'nodes_generated': 0,
             'time_taken': 0.0,
             'solution_length': 0
         }
@@ -54,6 +56,7 @@ class BaseSolver(ABC):
         """Print solver statistics."""
         print(f"\n{self.name} Statistics:")
         print(f"  Nodes explored: {self.stats['nodes_explored']}")
+        print(f"  Nodes generated: {self.stats['nodes_generated']}")
         print(f"  Time taken: {self.stats['time_taken']:.3f}s")
         print(f"  Solution length: {self.stats['solution_length']}")
         
@@ -65,8 +68,9 @@ class BaseSolver(ABC):
         lava_hash = str(sorted(state.lava_positions))
         aqua_hash = str(sorted(state.aqua_positions))
         temp_wall_hash = str(sorted(state.temp_wall_data))
+        altered_positions_hash = str(sorted(state.altered_tile_positions))
         
-        return f"{player_hash}|{boxes_hash}|{keys_hash}|{lava_hash}|{aqua_hash}{temp_wall_hash}"
+        return f"{player_hash}|{boxes_hash}|{keys_hash}|{lava_hash}|{aqua_hash}{temp_wall_hash}{altered_positions_hash}"
     
     
     # Helper methods for JSON serialization of stats
@@ -75,6 +79,7 @@ class BaseSolver(ABC):
         """Convert stats to JSON serializable format."""
         return {
             'nodes_explored': self.stats['nodes_explored'],
+            'nodes_generated': self.stats['nodes_generated'],
             'time_taken': self.stats['time_taken'],
             'solution_length': self.stats['solution_length']
         }

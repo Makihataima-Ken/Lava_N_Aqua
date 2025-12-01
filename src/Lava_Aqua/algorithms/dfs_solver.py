@@ -9,7 +9,7 @@ class DFSSolver(BaseSolver):
     """Depth-First Search solver implementation."""
     def __init__(self):
         super().__init__(name="DFS")
-        self.max_depth = 70
+        self.max_depth = 35
         
     def solve(self, game_logic) -> Optional[List[Direction]]:
         
@@ -31,8 +31,8 @@ class DFSSolver(BaseSolver):
             current_state, path = stack.pop()
             self.stats['nodes_explored'] += 1
 
-            # if len(path) >= self.max_depth:
-            #     continue
+            if len(path) >= self.max_depth:
+                continue
             
             # print(time.time()-start_time, f"DFS exploring node at depth {len(path)}, total explored: {self.stats['nodes_explored']}")
                 
@@ -51,6 +51,8 @@ class DFSSolver(BaseSolver):
                 
                 if new_state is None:
                     continue
+                
+                self.stats['nodes_generated'] += 1
                 
                 state_hash = self._hash_state(new_state)
                 if state_hash in visited:

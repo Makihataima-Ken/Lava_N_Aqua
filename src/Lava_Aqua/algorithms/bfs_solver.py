@@ -51,6 +51,8 @@ class BFSSolver(BaseSolver):
                 if new_state is None:
                     continue
                 
+                self.stats['nodes_generated'] += 1
+                
                 state_hash = self._hash_state(new_state)
                 if state_hash in visited:
                     continue

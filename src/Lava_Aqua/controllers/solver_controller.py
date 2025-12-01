@@ -65,7 +65,7 @@ class SolverController(BaseController):
             self.solving_complete = False
             
             # Update stats
-            self.solver.stats['time_taken'] =  solve_time/60.0 if solve_time>60.0 else solve_time  # in minutes
+            self.solver.stats['time_taken'] =  solve_time #/60.0 if solve_time>60.0 else solve_time  # in minutes
             self.solver.stats['solution_length'] = len(solution)
             
             print(f"Solution found: {len(solution)} moves in {solve_time:.3f}s")
