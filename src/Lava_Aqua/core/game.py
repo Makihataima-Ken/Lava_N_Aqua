@@ -22,6 +22,10 @@ class GameState:
     temp_wall_data: set[Tuple[Tuple[int, int], int]]
     altered_tile_positions: set[Tuple[int,int]]
     moves: int
+    
+    def __lt__(self,other):
+        return self.lava_positions < other.lava_positions
+        
 
 
 class GameLogic:

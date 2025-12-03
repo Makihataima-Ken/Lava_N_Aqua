@@ -31,6 +31,17 @@ def main_solver_dfs():
         visualize=True
     )
     
+def main_solver_ucs():
+    """Run game with UCS solver."""
+    from src.Lava_Aqua.algorithms.ucs_solver import UCSSolver
+    app = GameApplication()
+    solver = UCSSolver()
+    app.run(
+        solver=solver,
+        move_delay=0.1,
+        visualize=True
+    )
+    
 # def main_solver_aStar():
 #     from src.Lava_Aqua.algorithms.aStar_solver import AStarSolver
 #     app = GameApplication()
@@ -48,7 +59,7 @@ def main():
     parser = argparse.ArgumentParser(description='Lava & Aqua Game')
     parser.add_argument(
         '--mode',
-        choices=['play', 'bfs', 'dfs', 'random','aStar'],
+        choices=['play', 'bfs', 'dfs', 'random','aStar','ucs'],
         default='play',
         help='Game mode'
     )
@@ -78,6 +89,8 @@ def main():
         main_solver_bfs()
     elif args.mode == 'dfs':
         main_solver_dfs()
+    elif args.mode == 'ucs':
+        main_solver_ucs()
     # elif args.mode == 'aStar':
     #     main_solver_aStar()
 
