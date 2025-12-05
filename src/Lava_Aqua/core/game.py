@@ -1,6 +1,7 @@
 from typing import List, Tuple, Optional, Dict, Any
 from dataclasses import dataclass
 from copy import deepcopy
+import numpy as np
 
 from .level import LevelManager
 from .constants import TileType, Direction
@@ -476,3 +477,81 @@ class GameLogic:
         
     def is_level_completed(self)->bool:
         return self.level_complete
+    
+    
+    
+    # -------------------------------------------------------
+    # AI Specific helper functions
+    # -------------------------------------------------------
+    
+    def get_observation(self) -> np.ndarray:
+        """
+        Get current state observation for the agent.
+        
+        This converts the game state into a format the RL agent can use.
+        You can customize this based on what information you want to provide.
+        """
+        # Get grid dimensions
+        height, width = self.get_grid_dimensions()
+        
+        # Create observation layers
+        observation = np.zeros((height, width, 6), dtype=np.float32)
+        
+        # Layer 0: Walls
+        if self.grid:
+            for y in range(height):
+                for x in range(width):
+                    if not self.grid.is_walkable(x, y):
+                        observation[y, x, 0] = 1.0
+        
+        # Layer 1: Player
+        px, py = self.player.get_position()
+        observation[py, px, 1] = 1.0
+        
+        # Layer 2: Boxes
+        for box in self.boxes:
+            bx, by = box.get_position()
+            observation[by, bx, 2] = 1.0
+        
+        # Layer 3: Lava
+        for lx, ly in self.lava.get_positions():
+            observation[ly, lx, 3] = 1.0
+        
+        # Layer 4: Aqua
+        for ax, ay in self.aqua.get_positions():
+            observation[ay, ax, 4] = 1.0
+        
+        # Layer 5: Exit
+        ex, ey = self.exit_pos
+        observation[ey, ex, 5] = 1.0
+        
+        return observation
+    
+    def calculate_reward(self, move_successful: bool) -> float:
+        """
+        Calculate reward for current step.
+        
+        You can customize this reward function based on your needs.
+        """
+        # Win condition
+        if self.level_complete:
+            return 100.0
+        
+        # Lose condition
+        if self.game_over:
+            return -50.0
+        
+        # Invalid move penalty
+        if not move_successful:
+            return -1.0
+        
+        # Small negative reward for each step (encourages faster solutions)
+        reward = -0.1
+        
+        # Distance-based reward (optional - encourages moving toward exit)
+        player_pos = self.player.get_position()
+        exit_pos = self.exit_pos
+        distance = abs(player_pos[0] - exit_pos[0]) + abs(player_pos[1] - exit_pos[1])
+        reward -= distance * 0.01
+        
+        return reward

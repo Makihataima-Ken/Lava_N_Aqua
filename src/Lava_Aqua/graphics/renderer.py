@@ -135,3 +135,46 @@ class Renderer:
             game_logic.lava.count()
            )            
         self.flip()
+        
+    
+    def draw_solver_step(
+        self,
+        game_logic: GameLogic,
+        delay: float = 0.15,
+        show_ui: bool = True,
+        animation_time: float = 0.0
+    ) -> None:
+        """
+        Render a single solver step while keeping the window responsive.
+
+        Args:
+            game_logic: Game state after the solver applied a move.
+            delay: Time in seconds to wait after rendering (per move).
+            show_ui: Whether to draw the standard UI info bar.
+            animation_time: Animation time (optional).
+        """
+        # Process window events so the OS doesn't think the window froze
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                raise SystemExit()
+
+        # Draw main scene
+        self.clear()
+        self.draw_game_state(game_logic, animation_time)
+
+        # Optional UI bar
+        if show_ui:
+            self.draw_ui_info(
+                game_logic.get_level_number(),
+                game_logic.get_total_levels(),
+                game_logic.moves,
+                game_logic.lava.count()
+            )
+
+        # Update frame
+        self.flip()
+
+        # Control solver animation speed
+        if delay > 0:
+            time.sleep(delay)

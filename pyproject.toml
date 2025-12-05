@@ -8,6 +8,7 @@ dependencies = [
     "pygame>=2.1.0",
     "pip>=23.0.1",
     "numpy>=2.3.5",
+    "matplotlib>=3.10.7",
 ]
 
 [tool.uv.extra-build-dependencies]
