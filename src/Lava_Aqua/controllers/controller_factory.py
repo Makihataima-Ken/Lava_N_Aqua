@@ -1,6 +1,8 @@
 from typing import Type, Optional, Dict, Any
 from enum import Enum
 
+from Lava_Aqua.agents.base_agent import BaseAgent
+from Lava_Aqua.controllers.rl_controller import RLController
 from src.Lava_Aqua.core.game import GameLogic
 from src.Lava_Aqua.controllers.base_controller import BaseController
 from src.Lava_Aqua.controllers.player_controller import PlayerController
@@ -12,6 +14,7 @@ class ControllerType(Enum):
     """Available controller types."""
     PLAYER = "player"
     SOLVER = "solver"
+    RL = "reinforcement_learning"
 
 
 class ControllerFactory:
@@ -20,6 +23,7 @@ class ControllerFactory:
     _controllers: Dict[ControllerType, Type[BaseController]] = {
         ControllerType.PLAYER: PlayerController,
         ControllerType.SOLVER: SolverController,
+        ControllerType.RL: RLController
     }
     
     @classmethod
@@ -90,3 +94,26 @@ class ControllerFactory:
             move_delay=move_delay,
             visualize=visualize
         )
+        
+    # def create_rl(
+    #                 cls,
+    #                 game_logic: GameLogic,
+    #                 agent: BaseAgent,
+    #                 training_mode: bool = True,
+    #                 visualize: bool = False,
+    #                 move_delay: float = 0.05,
+    #                 max_steps_per_episode: int = 500) -> RLController:
+        
+    #     """Create a reinforcement learning controller.
+    #         Args:
+    #             game_logic: Game logic instance
+    #             agent: Reinforcement learning agent
+    #             training_mode: Whether the agent is in training mode
+    #             visualize: Whether to render the game
+    #             move_delay: Delay between moves in seconds
+    #             max_steps_per_episode: Maximum steps per episode
+    #     """
+        
+    #     return cls.create(ControllerType.RL,
+    #                       game_logic,agent = agent,training_mode=training_mode,
+    #                       visualize=visualize,move_delay=move_delay, max_steps_per_episode=max_steps_per_episode)

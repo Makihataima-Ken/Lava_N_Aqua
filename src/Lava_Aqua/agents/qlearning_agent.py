@@ -3,6 +3,7 @@ import numpy as np
 import random
 from collections import deque
 from src.Lava_Aqua.agents.base_agent import BaseAgent
+from src.Lava_Aqua.core.constants import ASSETS_DIR
 
 class QLearningAgent(BaseAgent):
     """
@@ -73,7 +74,7 @@ class QLearningAgent(BaseAgent):
     def save(self, filepath: str) -> None:
         """Save Q-table."""
         import pickle
-        with open(filepath, 'wb') as f:
+        with open(ASSETS_DIR/filepath, 'wb') as f:
             pickle.dump({
                 'q_table': self.q_table,
                 'epsilon': self.epsilon

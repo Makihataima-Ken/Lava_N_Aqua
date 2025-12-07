@@ -527,12 +527,12 @@ class GameLogic:
         
         return observation
     
-    def calculate_reward(self, move_successful: bool) -> float:
+    def calculate_reward(self, direction: Direction) -> float:
         """
         Calculate reward for current step.
-        
-        You can customize this reward function based on your needs.
         """
+        move_successful = self.move_player(direction)
+        
         # Win condition
         if self.level_complete:
             return 100.0

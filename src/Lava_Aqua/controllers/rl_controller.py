@@ -22,9 +22,7 @@ class RLController(BaseController):
     def __init__(
         self, 
         game_logic: GameLogic,
-        agent: BaseAgent,  # Forward reference
-        training_mode: bool = True,
-        visualize: bool = False,
+        agent: BaseAgent,
         move_delay: float = 0.05,
         max_steps_per_episode: int = 500
     ):
@@ -34,15 +32,11 @@ class RLController(BaseController):
         Args:
             game_logic: Game logic instance
             agent: RL agent to train/evaluate
-            training_mode: If True, agent learns; if False, agent only acts
-            visualize: Whether to render during episodes
             move_delay: Delay between moves (for visualization)
             max_steps_per_episode: Maximum steps before episode ends
         """
         super().__init__(game_logic)
         self.agent = agent
-        self.training_mode = training_mode
-        self.visualize = visualize
         self.move_delay = move_delay
         self.max_steps_per_episode = max_steps_per_episode
         
@@ -86,11 +80,8 @@ class RLController(BaseController):
         directions = [Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT]
         direction = directions[action]
         
-        # Execute move
-        move_successful = self.game_logic.move_player(direction)
-        
         # Calculate reward
-        reward = self.game_logic.calculate_reward(move_successful)
+        reward = self.game_logic.calculate_reward(direction=direction)
         
         # Update counters
         self.current_episode_steps += 1
@@ -109,7 +100,7 @@ class RLController(BaseController):
         
         # Additional info
         info = {
-            'move_successful': move_successful,
+            # 'move_successful': move_successful,
             'level_complete': self.game_logic.level_complete,
             'game_over': self.game_logic.game_over,
             'steps': self.current_episode_steps,
@@ -118,7 +109,7 @@ class RLController(BaseController):
         
         return next_observation, reward, done, info
     
-    def run_episode(self) -> Dict[str, Any]:
+    def run_episode(self,training_mode:bool = False, visualize:bool =False ) -> Dict[str, Any]:
         """
         Run a complete episode (training or evaluation).
         
@@ -130,25 +121,24 @@ class RLController(BaseController):
         
         while not done:
             # Agent selects action
-            action = self.agent.select_action(observation, training=self.training_mode)
+            action = self.agent.select_action(observation, training=training_mode)
             
             # Execute action
             next_observation, reward, done, info = self.step(action)
             
             # Agent learns from transition (if training)
-            if self.training_mode:
+            if training_mode:
                 self.agent.learn(observation, action, reward, next_observation, done)
             
             # Update observation
             observation = next_observation
             
-            # Visualization
-            if self.visualize:
+            # Check for quit events
+            if visualize:
+                
                 self.render_frame()
                 time.sleep(self.move_delay)
-            
-            # Check for quit events
-            if self.visualize:
+                
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT or (
                         event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE
@@ -181,7 +171,6 @@ class RLController(BaseController):
         print(f"Agent: {self.agent.name}")
         print()
         
-        self.training_mode = True
         training_start = time.time()
         
         for episode in range(1, num_episodes + 1):
@@ -238,11 +227,6 @@ class RLController(BaseController):
         Returns:
             Evaluation statistics
         """
-        original_training_mode = self.training_mode
-        original_visualize = self.visualize
-        
-        self.training_mode = False
-        self.visualize = visualize
         
         eval_rewards = []
         eval_lengths = []
@@ -254,10 +238,6 @@ class RLController(BaseController):
             eval_lengths.append(stats['steps'])
             if stats['level_complete']:
                 success_count += 1
-        
-        # Restore original settings
-        self.training_mode = original_training_mode
-        self.visualize = original_visualize
         
         return {
             'num_episodes': num_episodes,
