@@ -1,8 +1,10 @@
-from typing import Optional, Dict, Any, Tuple
 import time
 import pygame
 import numpy as np
+import matplotlib.pyplot as plt
+
 from copy import deepcopy
+from typing import Optional, Dict, Any, Tuple
 
 from src.Lava_Aqua.core.game import GameLogic
 from src.Lava_Aqua.core.constants import Direction, GameResult
@@ -80,8 +82,10 @@ class RLController(BaseController):
         directions = [Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT]
         direction = directions[action]
         
+        move = self.game_logic.move_player(direction=direction)
+        
         # Calculate reward
-        reward = self.game_logic.calculate_reward(direction=direction)
+        reward = self.game_logic.calculate_reward(move)
         
         # Update counters
         self.current_episode_steps += 1
@@ -163,13 +167,7 @@ class RLController(BaseController):
         Returns:
             Training statistics
         """
-        print(f"\n{'='*70}")
-        print(f"🎓 TRAINING RL AGENT")
-        print(f"{'='*70}")
-        print(f"Episodes: {num_episodes}")
-        print(f"Level: {self.game_logic.get_level_description()}")
-        print(f"Agent: {self.agent.name}")
-        print()
+        self.on_train_start(num_episodes)
         
         training_start = time.time()
         
@@ -198,11 +196,7 @@ class RLController(BaseController):
         
         training_time = time.time() - training_start
         
-        print(f"\n{'='*70}")
-        print(f"✓ Training Complete")
-        print(f"  Total time: {training_time:.1f}s")
-        print(f"  Total steps: {self.total_steps}")
-        print(f"{'='*70}")
+        self.on_train_complete(training_time)
         
         return {
             'training_time': training_time,
@@ -260,22 +254,61 @@ class RLController(BaseController):
             'terminated': terminated
         }
     
-    def run_level(self) -> GameResult:
+    def run_level(self, visualize: bool = True) -> GameResult:
         """
-        Override base method - not used for RL training.
-        Use train() or evaluate() instead.
+        Runs a single episode using the trained agent in exploitation (non-training) mode.
+
+        Args:
+            visualize: Whether to render the game during the run.
+        
+        Returns:
+            GameResult: The outcome of the episode (Win, Lose, or Quit).
         """
-        raise NotImplementedError(
-            "Use train() or evaluate() methods for RL training/evaluation"
-        )
+        self.on_level_start()
+        
+        stats = self.run_episode(training_mode=False, visualize=visualize)
+        
+        self.on_level_complete()
+        
+        # 2. Determine and return the GameResult based on stats
+        if stats['terminated']:
+            return GameResult.QUIT
+        elif stats['level_complete']:
+            print("🎉 Level Complete!")
+            return GameResult.WIN
+        
+        
         
     def on_level_start(self) -> None:
         """Called when a level starts. Override for custom behavior."""
-        pass
+        print(f"\n{'='*70}")
+        print(f"Solving with RL AGENT")
+        print(f"Level: {self.game_logic.get_level_description()}")
+        print(f"Agent: {self.agent.name}")
+        print(f"\n{'='*70}")
+    
+    def on_train_start(self,num_episodes:int) -> None:
+        print(f"\n{'='*70}")
+        print(f"TRAINING RL AGENT")
+        print(f"Episodes: {num_episodes}")
+        print(f"Level: {self.game_logic.get_level_description()}")
+        print(f"Agent: {self.agent.name}")
+        print(f"\n{'='*70}")
     
     def on_level_complete(self) -> None:
         """Called when a level is completed. Override for custom behavior."""
-        pass
+        print(f"\n{'='*70}")
+        print(f"  level Complete")
+        print(f"  Total steps: {self.total_steps}")
+        print(f"{'='*70}")
+    
+    def on_train_complete(self,training_time:float) -> None:
+        print(f"\n{'='*70}")
+        print(f"  Training Complete")
+        print(f"  Total time: {training_time:.1f}s")
+        print(f"  Total steps: {self.total_steps}")
+        print(f"{'='*70}")
+        
     def on_game_over(self) -> None:
         """Called when game over occurs. Override for custom behavior."""
         pass
@@ -284,3 +317,48 @@ class RLController(BaseController):
         Process input events. Not used in RL controller.
         """
         pass
+    
+    def plot_training_curves(self,training_stats):
+        """Plot training progress."""
+        
+        fig, axes = plt.subplots(2, 1, figsize=(10, 8))
+        
+        # Smooth rewards
+        rewards = training_stats['episode_rewards']
+        window = 50
+        if len(rewards) >= window:
+            smoothed_rewards = np.convolve(
+                rewards, 
+                np.ones(window)/window, 
+                mode='valid'
+            )
+            axes[0].plot(smoothed_rewards, label='Smoothed')
+        
+        axes[0].plot(rewards, alpha=0.3, label='Raw')
+        axes[0].set_xlabel('Episode')
+        axes[0].set_ylabel('Total Reward')
+        axes[0].set_title('Training Rewards')
+        axes[0].legend()
+        axes[0].grid(True)
+        
+        # Episode lengths
+        lengths = training_stats['episode_lengths']
+        if len(lengths) >= window:
+            smoothed_lengths = np.convolve(
+                lengths, 
+                np.ones(window)/window, 
+                mode='valid'
+            )
+            axes[1].plot(smoothed_lengths, label='Smoothed')
+        
+        axes[1].plot(lengths, alpha=0.3, label='Raw')
+        axes[1].set_xlabel('Episode')
+        axes[1].set_ylabel('Steps')
+        axes[1].set_title('Episode Length')
+        axes[1].legend()
+        axes[1].grid(True)
+        
+        plt.tight_layout()
+        plt.savefig('training_curves.png')
+        print("\n📈 Training curves saved to 'training_curves.png'")
+        plt.show()

@@ -7,6 +7,7 @@ from src.Lava_Aqua.core.constants import GameResult
 from src.Lava_Aqua.controllers.base_controller import BaseController
 from src.Lava_Aqua.controllers.controller_factory import ControllerFactory, ControllerType
 from src.Lava_Aqua.algorithms.base_solver import BaseSolver
+from src.Lava_Aqua.agents.base_agent import BaseAgent
 
 
 class GameApplication:
@@ -42,14 +43,23 @@ class GameApplication:
             traceback.print_exc()
             sys.exit(1)
     
-    def run(self,solver: BaseSolver = None, move_delay: float = 0.2, 
-                       visualize: bool = True) -> None:
-        """Run the main game loop."""
-        if solver:
+    def run(self, solver: BaseSolver = None, agent: BaseAgent = None,
+            move_delay: float = 0.2, visualize: bool = True) -> None:
+        """Run the main game loop.
+        
+        Args:
+            solver: Optional solver algorithm for solver mode
+            agent: Optional RL agent for RL mode
+            move_delay: Delay between moves in seconds
+            visualize: Whether to render the game
+        """
+        if agent:
+            self._run_with_rl_agent(agent, move_delay, visualize)
+        elif solver:
             self._run_with_solver(solver, move_delay, visualize)
         else:
             self._run_player_mode()
-            
+    
     def _run_player_mode(self) -> None:
         """Run the main game loop (for user play mode)."""
         
@@ -143,7 +153,7 @@ class GameApplication:
                     elif result == GameResult.CONTINUE:
                         # Solver failed
                         total_stats['failed_levels'].append(
-                            (self.game_logic.get_level_number(),self.game_logic.get_level_name())
+                            (self.game_logic.get_level_number(), self.game_logic.get_level_name())
                         )
                         print(f"\n Solver failed on level {self.game_logic.get_level_description()}")
 
@@ -160,6 +170,106 @@ class GameApplication:
         finally:
             self._print_solver_summary(total_stats)
             self._cleanup()
+    
+    def _run_with_rl_agent(self, agent: BaseAgent, move_delay: float = 0.05,
+                          visualize: bool = False) -> None:
+        """Run game with reinforcement learning agent.
+        
+        Args:
+            agent: RL agent instance to use
+            move_delay: Delay between moves in seconds
+            visualize: Whether to render the training/evaluation process
+        """
+        print(f"\n Starting RL mode with {agent.name}")
+        print("=" * 60)
+        
+        try:
+            # Create RL controller
+            self.current_controller = ControllerFactory.create_rl(
+                game_logic=self.game_logic,
+                agent=agent,
+                move_delay=move_delay,
+                max_steps_per_episode=500
+            )
+            
+            # Training mode
+            print("\nStarting training phase...")
+            training_stats = self.current_controller.train(
+                num_episodes=1000,
+                eval_frequency=100
+            )
+            
+            self.current_controller.agent.save('qlearning_agent.pkl')
+            print("\n Agent saved to 'qlearning_agent.pkl'")
+            
+            # Final evaluation
+            print("\n" + "=" * 60)
+            print("FINAL EVALUATION")
+            print("=" * 60)
+            eval_stats = self.current_controller.evaluate(
+                num_episodes=100,
+                visualize=visualize
+            )
+            
+            self._print_rl_summary(training_stats, eval_stats)
+            
+            self.current_controller.run_level(True)
+            
+        except Exception as e:
+            print(f" Error in RL mode: {e}")
+            import traceback
+            traceback.print_exc()
+        finally:
+            self._cleanup()
+    
+    def train_rl_agent(self, agent: BaseAgent, num_episodes: int = 1000,
+                      eval_frequency: int = 100, visualize: bool = False) -> dict:
+        """Train an RL agent on the current level.
+        
+        Args:
+            agent: RL agent to train
+            num_episodes: Number of training episodes
+            eval_frequency: Evaluate every N episodes
+            visualize: Whether to render training
+            
+        Returns:
+            Training statistics dictionary
+        """
+        self.current_controller = ControllerFactory.create_rl(
+            self.game_logic,
+            agent=agent,
+            move_delay=0.05,
+            max_steps_per_episode=500
+        )
+        
+        return self.current_controller.train(
+            num_episodes=num_episodes,
+            eval_frequency=eval_frequency
+        )
+    
+    def evaluate_rl_agent(self, agent: BaseAgent, num_episodes: int = 100,
+                         visualize: bool = True) -> dict:
+        """Evaluate an RL agent on the current level.
+        
+        Args:
+            agent: RL agent to evaluate
+            num_episodes: Number of evaluation episodes
+            visualize: Whether to render evaluation
+            
+        Returns:
+            Evaluation statistics dictionary
+        """
+        self.current_controller = ControllerFactory.create_rl(
+            self.game_logic,
+            agent=agent,
+            move_delay=0.2,
+            max_steps_per_episode=500
+        )
+        
+        return self.current_controller.evaluate(
+            num_episodes=num_episodes,
+            visualize=visualize
+        )
     
     def _print_solver_summary(self, stats: dict) -> None:
         """Print summary of solver performance.
@@ -183,6 +293,28 @@ class GameApplication:
             for level_num, level_name in stats['failed_levels']:
                 print(f"  - Level {level_num}: {level_name}")
         
+        print("=" * 60)
+    
+    def _print_rl_summary(self, training_stats: dict, eval_stats: dict) -> None:
+        """Print summary of RL training and evaluation.
+        
+        Args:
+            training_stats: Training statistics
+            eval_stats: Evaluation statistics
+        """
+        print("\n" + "=" * 60)
+        print("RL TRAINING & EVALUATION SUMMARY")
+        print("=" * 60)
+        print(f"\nTraining:")
+        print(f"  Total episodes: {training_stats['total_episodes']}")
+        print(f"  Total steps: {training_stats['total_steps']}")
+        print(f"  Training time: {training_stats['training_time']:.1f}s")
+        
+        print(f"\nFinal Evaluation ({eval_stats['num_episodes']} episodes):")
+        print(f"  Success rate: {eval_stats['success_rate']:.1%}")
+        print(f"  Success count: {eval_stats['success_count']}/{eval_stats['num_episodes']}")
+        print(f"  Avg reward: {eval_stats['avg_reward']:.2f} ± {eval_stats['std_reward']:.2f}")
+        print(f"  Avg steps: {eval_stats['avg_steps']:.1f} ± {eval_stats['std_steps']:.1f}")
         print("=" * 60)
     
     def _print_victory(self) -> None:

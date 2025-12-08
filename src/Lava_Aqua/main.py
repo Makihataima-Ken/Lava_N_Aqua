@@ -51,7 +51,30 @@ def main_solver_ucs():
 #         move_delay=0.1,
 #         visualize=True
 #     )
-
+def main_agent_train_qlearning():
+    """Train Q-Learning agent."""
+    from src.Lava_Aqua.agents.qlearning_agent import QLearningAgent
+    from src.Lava_Aqua.controllers.rl_controller import RLController
+    
+    app = GameApplication()
+    height, width = app.game_logic.get_grid_dimensions()
+    state_shape = (height, width, 6)
+    
+    agent = QLearningAgent(
+        state_shape = state_shape,
+        num_actions=4,
+        learning_rate=0.1,
+        gamma=0.99,
+        epsilon=1.0,
+        epsilon_decay=0.995,
+        epsilon_min=0.01
+    )
+    
+    app.run(
+        agent=agent,
+        move_delay=0.5,
+        visualize=False
+    )
 def main():
     """Run game with command-line arguments."""
     import argparse
@@ -59,7 +82,7 @@ def main():
     parser = argparse.ArgumentParser(description='Lava & Aqua Game')
     parser.add_argument(
         '--mode',
-        choices=['play', 'bfs', 'dfs', 'random','aStar','ucs'],
+        choices=['play', 'bfs', 'dfs', 'random','aStar','ucs','qlearning'],
         default='play',
         help='Game mode'
     )
@@ -91,6 +114,8 @@ def main():
         main_solver_dfs()
     elif args.mode == 'ucs':
         main_solver_ucs()
+    elif args.mode == 'qlearning':
+        main_agent_train_qlearning()
     # elif args.mode == 'aStar':
     #     main_solver_aStar()
 

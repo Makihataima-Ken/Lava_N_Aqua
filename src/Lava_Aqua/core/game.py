@@ -527,26 +527,26 @@ class GameLogic:
         
         return observation
     
-    def calculate_reward(self, direction: Direction) -> float:
+    def calculate_reward(self, move:bool) -> float:
         """
         Calculate reward for current step.
         """
-        move_successful = self.move_player(direction)
+        # move_successful = self.simulate_move(direction=direction)
         
         # Win condition
         if self.level_complete:
-            return 100.0
+            return 1000.0
         
         # Lose condition
         if self.game_over:
-            return -50.0
+            return -100.0
         
         # Invalid move penalty
-        if not move_successful:
-            return -1.0
+        if not move:
+            return -10.0
         
         # Small negative reward for each step (encourages faster solutions)
-        reward = -0.1
+        reward = -1.0
         
         # Distance-based reward (optional - encourages moving toward exit)
         player_pos = self.player.get_position()
