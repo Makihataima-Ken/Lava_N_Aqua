@@ -16,7 +16,7 @@ def main_solver_bfs():
     solver = BFSSolver()
     app.run(
         solver=solver,
-        move_delay=0.3,
+        move_delay=0.1,
         visualize=True
     )
     

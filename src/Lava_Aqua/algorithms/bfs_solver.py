@@ -2,7 +2,7 @@ from collections import deque
 from typing import List, Optional, Set, Tuple
 from copy import deepcopy
 
-from src.Lava_Aqua.algorithms.base_solver import BaseSolver
+from src.Lava_Aqua.algorithms.base_solver import BaseSolver, PathNode
 from src.Lava_Aqua.core.game import GameLogic
 from src.Lava_Aqua.core.constants import Direction
 
@@ -25,6 +25,7 @@ class BFSSolver(BaseSolver):
         
         init_state = simulation.get_state()
        
+        # queue = deque([(init_state,PathNode(None))])
         queue = deque([(init_state,[])])
        
         visited = set()
@@ -37,6 +38,9 @@ class BFSSolver(BaseSolver):
             simulation.load_state(currrent_state)
 
             # print(time.time()-start_time, f"BFS exploring node at depth {len(path)}, total explored: {self.stats['nodes_explored']}")
+            
+            # if simulation.is_level_completed():
+            #     return path.to_list()
             
             if simulation.is_level_completed():
                 return path
@@ -59,6 +63,7 @@ class BFSSolver(BaseSolver):
                 
                 visited.add(state_hash)
                 new_path = path + [move]
+                # new_path = PathNode(move,path)
                 queue.append((new_state, new_path))
            
         return None

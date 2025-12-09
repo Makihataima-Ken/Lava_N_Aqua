@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, Optional
 from src.Lava_Aqua.core.game import GameLogic, GameState
 from src.Lava_Aqua.core.constants import Direction
+from dataclasses import dataclass
 
 from src.Lava_Aqua.graphics.renderer import Renderer
 
@@ -111,3 +112,16 @@ class BaseSolver(ABC):
             caption = simulation.get_level_description()
             
             return Renderer(screen_width, screen_height, caption)    
+        
+@dataclass
+class PathNode:
+    val: Direction
+    parent: Optional["PathNode"] = None
+    
+    def to_list(self):
+        path_list = []
+        buff = self
+        while buff and buff.val is not None:
+            path_list.append(buff.val)
+            buff = buff.parent
+        return path_list[::-1]

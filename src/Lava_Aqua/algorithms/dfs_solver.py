@@ -2,7 +2,7 @@ import time
 from typing import List, Optional, Set
 from copy import deepcopy
 from src.Lava_Aqua.graphics.renderer import Renderer
-from src.Lava_Aqua.algorithms.base_solver import BaseSolver
+from src.Lava_Aqua.algorithms.base_solver import BaseSolver , PathNode
 from src.Lava_Aqua.core.constants import Direction
 
 class DFSSolver(BaseSolver):
@@ -21,7 +21,9 @@ class DFSSolver(BaseSolver):
         
         initial_state = simulation.get_state()
         
+        # stack = [(initial_state, PathNode(val=None))]
         stack = [(initial_state, [])]
+        
         visited: Set[str] = set()
         visited.add(self._hash_state(initial_state))
         
@@ -29,13 +31,16 @@ class DFSSolver(BaseSolver):
             current_state, path = stack.pop()
             self.stats['nodes_explored'] += 1
 
-            if len(path) >= self.max_depth:
-                continue
+            # if len(path.to_list()) >= self.max_depth:
+            #     continue
             
             # print(time.time()-start_time, f"DFS exploring node at depth {len(path)}, total explored: {self.stats['nodes_explored']}")
                 
             simulation.load_state(current_state)
 
+            # if simulation.is_level_completed():
+            #     return path.to_list()
+            
             if simulation.is_level_completed():
                 return path
 
@@ -58,6 +63,7 @@ class DFSSolver(BaseSolver):
                 
                 visited.add(state_hash)
                 new_path = path + [move]
+                # new_path = PathNode(val=move,parent=path)
                 stack.append((new_state, new_path))
                 
         return None
