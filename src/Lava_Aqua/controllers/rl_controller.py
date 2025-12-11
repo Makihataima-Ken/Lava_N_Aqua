@@ -2,14 +2,12 @@ import time
 import pygame
 import numpy as np
 import matplotlib.pyplot as plt
-
+from typing import Optional, Dict, Any, Tuple, List
 from copy import deepcopy
-from typing import Optional, Dict, Any, Tuple
 
 from src.Lava_Aqua.core.game import GameLogic
 from src.Lava_Aqua.core.constants import Direction, GameResult
 from .base_controller import BaseController
-
 from src.Lava_Aqua.agents.base_agent import BaseAgent
 
 
@@ -17,8 +15,8 @@ class RLController(BaseController):
     """
     Controller for Reinforcement Learning agent.
     
-    This controller interfaces between the RL agent and the game,
-    handling training episodes, evaluation, and rendering.
+    Simplified to match the solver pattern - the agent has full control
+    over the game logic and learning process.
     """
     
     def __init__(
@@ -26,7 +24,6 @@ class RLController(BaseController):
         game_logic: GameLogic,
         agent: BaseAgent,
         move_delay: float = 0.05,
-        max_steps_per_episode: int = 500
     ):
         """
         Initialize RL controller.
@@ -35,134 +32,28 @@ class RLController(BaseController):
             game_logic: Game logic instance
             agent: RL agent to train/evaluate
             move_delay: Delay between moves (for visualization)
-            max_steps_per_episode: Maximum steps before episode ends
         """
         super().__init__(game_logic)
         self.agent = agent
         self.move_delay = move_delay
-        self.max_steps_per_episode = max_steps_per_episode
         
-        # Episode tracking
-        self.episode_count = 0
-        self.total_steps = 0
-        self.episode_rewards = []
-        self.episode_lengths = []
-        
-        # Current episode state
-        self.current_episode_reward = 0.0
-        self.current_episode_steps = 0
+        # Training statistics (controller level)
+        self.episode_rewards: List[float] = []
+        self.episode_lengths: List[int] = []
     
-    def reset_episode(self) -> np.ndarray:
-        """
-        Reset environment for new episode.
-        
-        Returns:
-            Initial state observation
-        """
-        self.game_logic.reset_level()
-        self.current_episode_reward = 0.0
-        self.current_episode_steps = 0
-        
-        return self.game_logic.get_observation()
-    
-    def step(self, action: int) -> Tuple[np.ndarray, float, bool, Dict[str, Any]]:
-        """
-        Execute one step in the environment (OpenAI Gym style).
-        
-        Args:
-            action: Action index (0=UP, 1=DOWN, 2=LEFT, 3=RIGHT)
-            
-        Returns:
-            observation: Next state
-            reward: Reward for this step
-            done: Whether episode is complete
-            info: Additional information
-        """
-        # Map action to direction
-        directions = [Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT]
-        direction = directions[action]
-        
-        move = self.game_logic.move_player(direction=direction)
-        
-        # Calculate reward
-        reward = self.game_logic.calculate_reward(move)
-        
-        # Update counters
-        self.current_episode_steps += 1
-        self.current_episode_reward += reward
-        self.total_steps += 1
-        
-        # Check if episode is done
-        done = (
-            self.game_logic.level_complete or 
-            self.game_logic.game_over or 
-            self.current_episode_steps >= self.max_steps_per_episode
-        )
-        
-        # Get next observation
-        next_observation = self.game_logic.get_observation()
-        
-        # Additional info
-        info = {
-            # 'move_successful': move_successful,
-            'level_complete': self.game_logic.level_complete,
-            'game_over': self.game_logic.game_over,
-            'steps': self.current_episode_steps,
-            'total_reward': self.current_episode_reward
-        }
-        
-        return next_observation, reward, done, info
-    
-    def run_episode(self,training_mode:bool = False, visualize:bool =False ) -> Dict[str, Any]:
-        """
-        Run a complete episode (training or evaluation).
-        
-        Returns:
-            Episode statistics
-        """
-        observation = self.reset_episode()
-        done = False
-        
-        while not done:
-            # Agent selects action
-            action = self.agent.select_action(observation, training=training_mode)
-            
-            # Execute action
-            next_observation, reward, done, info = self.step(action)
-            
-            # Agent learns from transition (if training)
-            if training_mode:
-                self.agent.learn(observation, action, reward, next_observation, done)
-            
-            # Update observation
-            observation = next_observation
-            
-            # Check for quit events
-            if visualize:
-                
-                self.render_frame()
-                time.sleep(self.move_delay)
-                
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT or (
-                        event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE
-                    ):
-                        return self._get_episode_stats(terminated=True)
-        
-        # Episode complete
-        self.episode_count += 1
-        self.episode_rewards.append(self.current_episode_reward)
-        self.episode_lengths.append(self.current_episode_steps)
-        
-        return self._get_episode_stats()
-    
-    def train(self, num_episodes: int, eval_frequency: int = 100) -> Dict[str, Any]:
+    def train(
+        self, 
+        num_episodes: int, 
+        eval_frequency: int = 100,
+        visualize: bool = False
+    ) -> Dict[str, Any]:
         """
         Train the agent for multiple episodes.
         
         Args:
             num_episodes: Number of training episodes
             eval_frequency: Evaluate agent every N episodes
+            visualize: Whether to visualize training
             
         Returns:
             Training statistics
@@ -171,39 +62,26 @@ class RLController(BaseController):
         
         training_start = time.time()
         
-        for episode in range(1, num_episodes + 1):
-            stats = self.run_episode()
-            
-            # Logging
-            if episode % 10 == 0:
-                avg_reward = np.mean(self.episode_rewards[-10:])
-                avg_length = np.mean(self.episode_lengths[-10:])
-                
-                print(
-                    f"Episode {episode}/{num_episodes} | "
-                    f"Avg Reward: {avg_reward:.2f} | "
-                    f"Avg Length: {avg_length:.1f} | "
-                    f"Success: {stats['level_complete']}"
-                )
-            
-            # Evaluation
-            if episode % eval_frequency == 0:
-                eval_stats = self.evaluate(num_episodes=10, visualize=False)
-                print(f"\n📊 Evaluation after {episode} episodes:")
-                print(f"  Success Rate: {eval_stats['success_rate']:.1%}")
-                print(f"  Avg Reward: {eval_stats['avg_reward']:.2f}")
-                print(f"  Avg Steps: {eval_stats['avg_steps']:.1f}\n")
+        # Agent trains directly on game logic
+        training_stats = self.agent.train(
+            game_logic=self.game_logic,
+            num_episodes=num_episodes,
+            eval_frequency=eval_frequency,
+            visualize=visualize,
+            move_delay=self.move_delay,
+            controller=self  # Pass controller for rendering if needed
+        )
         
         training_time = time.time() - training_start
+        
+        self.episode_rewards = training_stats.get('episode_rewards', [])
+        self.episode_lengths = training_stats.get('episode_lengths', [])
         
         self.on_train_complete(training_time)
         
         return {
             'training_time': training_time,
-            'total_episodes': num_episodes,
-            'total_steps': self.total_steps,
-            'episode_rewards': self.episode_rewards,
-            'episode_lengths': self.episode_lengths
+            **training_stats
         }
     
     def evaluate(
@@ -221,144 +99,175 @@ class RLController(BaseController):
         Returns:
             Evaluation statistics
         """
+        print(f"\n{'='*60}")
+        print(f"📊 Evaluating {self.agent.name}")
+        print(f"{'='*60}")
         
-        eval_rewards = []
-        eval_lengths = []
-        success_count = 0
+        # Agent evaluates itself
+        eval_stats = self.agent.evaluate(
+            game_logic=self.game_logic,
+            num_episodes=num_episodes,
+            visualize=visualize,
+            move_delay=self.move_delay,
+            controller=self
+        )
         
-        for _ in range(num_episodes):
-            stats = self.run_episode()
-            eval_rewards.append(stats['total_reward'])
-            eval_lengths.append(stats['steps'])
-            if stats['level_complete']:
-                success_count += 1
+        # Print results
+        print(f"\n📊 Evaluation Results:")
+        print(f"  Success Rate: {eval_stats['success_rate']:.1%}")
+        print(f"  Avg Reward: {eval_stats['avg_reward']:.2f} ± {eval_stats.get('std_reward', 0):.2f}")
+        print(f"  Avg Steps: {eval_stats['avg_steps']:.1f} ± {eval_stats.get('std_steps', 0):.1f}")
+        print(f"{'='*60}\n")
         
-        return {
-            'num_episodes': num_episodes,
-            'success_rate': success_count / num_episodes,
-            'success_count': success_count,
-            'avg_reward': np.mean(eval_rewards),
-            'std_reward': np.std(eval_rewards),
-            'avg_steps': np.mean(eval_lengths),
-            'std_steps': np.std(eval_lengths)
-        }
+        return eval_stats
     
-    def _get_episode_stats(self, terminated: bool = False) -> Dict[str, Any]:
-        """Get statistics for completed episode."""
-        return {
-            'episode': self.episode_count,
-            'steps': self.current_episode_steps,
-            'total_reward': self.current_episode_reward,
-            'level_complete': self.game_logic.level_complete,
-            'game_over': self.game_logic.game_over,
-            'terminated': terminated
-        }
-    
-    def run_level(self, visualize: bool = True) -> GameResult:
+    def run_level(self, visualize: bool = True, agent_path: Optional[str] = None) -> GameResult:
         """
-        Runs a single episode using the trained agent in exploitation (non-training) mode.
+        Run a single episode using the trained agent.
+        Similar to SolverController.run_level().
 
         Args:
-            visualize: Whether to render the game during the run.
+            visualize: Whether to render the game during the run
+            agent_path: Path to load trained agent from
         
         Returns:
-            GameResult: The outcome of the episode (Win, Lose, or Quit).
+            GameResult: The outcome of the episode
         """
         self.on_level_start()
         
-        stats = self.run_episode(training_mode=False, visualize=visualize)
+        # Load agent if path provided
+        if agent_path:
+            self.agent.load(agent_path)
+            print(f"Agent loaded from: {agent_path}")
         
-        self.on_level_complete()
+        # Agent runs the level
+        result = self.agent.run_episode(
+            game_logic=self.game_logic,
+            training=False,
+            visualize=visualize,
+            move_delay=self.move_delay,
+            controller=self
+        )
         
-        # 2. Determine and return the GameResult based on stats
-        if stats['terminated']:
+        # Determine outcome
+        if result['terminated']:
             return GameResult.QUIT
-        elif stats['level_complete']:
-            print("🎉 Level Complete!")
+        elif result['level_complete']:
+            self.on_level_complete(result)
             return GameResult.WIN
-        
-        
-        
+        else:
+            self.on_game_over(result)
+            return GameResult.LOSE
+    
     def on_level_start(self) -> None:
-        """Called when a level starts. Override for custom behavior."""
+        """Called when a level starts."""
         print(f"\n{'='*70}")
-        print(f"Solving with RL AGENT")
+        print(f"Running RL Agent")
         print(f"Level: {self.game_logic.get_level_description()}")
         print(f"Agent: {self.agent.name}")
-        print(f"\n{'='*70}")
+        print(f"{'='*70}")
     
-    def on_train_start(self,num_episodes:int) -> None:
+    def on_train_start(self, num_episodes: int) -> None:
+        """Called when training starts."""
         print(f"\n{'='*70}")
         print(f"TRAINING RL AGENT")
         print(f"Episodes: {num_episodes}")
         print(f"Level: {self.game_logic.get_level_description()}")
         print(f"Agent: {self.agent.name}")
-        print(f"\n{'='*70}")
-    
-    def on_level_complete(self) -> None:
-        """Called when a level is completed. Override for custom behavior."""
-        print(f"\n{'='*70}")
-        print(f"  level Complete")
-        print(f"  Total steps: {self.total_steps}")
         print(f"{'='*70}")
     
-    def on_train_complete(self,training_time:float) -> None:
+    def on_level_complete(self, result: Dict[str, Any]) -> None:
+        """Called when a level is completed."""
         print(f"\n{'='*70}")
-        print(f"  Training Complete")
+        print(f"🎉 Level Complete!")
+        print(f"  Total steps: {result.get('steps', 0)}")
+        print(f"  Total reward: {result.get('total_reward', 0):.2f}")
+        print(f"{'='*70}")
+    
+    def on_train_complete(self, training_time: float) -> None:
+        """Called when training completes."""
+        print(f"\n{'='*70}")
+        print(f"✅ Training Complete")
         print(f"  Total time: {training_time:.1f}s")
-        print(f"  Total steps: {self.total_steps}")
-        print(f"{'='*70}")
         
-    def on_game_over(self) -> None:
-        """Called when game over occurs. Override for custom behavior."""
-        pass
+        if self.episode_rewards:
+            print(f"  Total episodes: {len(self.episode_rewards)}")
+            print(f"  Final avg reward: {np.mean(self.episode_rewards[-100:]):.2f}")
+        
+        # Print agent-specific stats
+        agent_stats = self.agent.get_stats()
+        if agent_stats:
+            print(f"\n  Agent Statistics:")
+            for key, value in agent_stats.items():
+                if isinstance(value, float):
+                    print(f"    {key}: {value:.4f}")
+                else:
+                    print(f"    {key}: {value}")
+        
+        print(f"{'='*70}")
+    
+    def on_game_over(self, result: Dict[str, Any]) -> None:
+        """Called when game over occurs."""
+        print(f"\n💀 Game Over")
+        print(f"  Steps survived: {result.get('steps', 0)}")
+        print(f"  Total reward: {result.get('total_reward', 0):.2f}")
+    
     def process_input(self) -> Tuple[Optional[Direction], Optional[str]]:
         """
-        Process input events. Not used in RL controller.
+        Process input events. Not used in RL controller during normal operation.
         """
         pass
     
-    def plot_training_curves(self,training_stats):
-        """Plot training progress."""
+    def plot_training_curves(self, save_path: str = 'training_curves.png'):
+        """
+        Plot training progress.
+        
+        Args:
+            save_path: Path to save the plot
+        """
+        if not self.episode_rewards:
+            print("No training data to plot")
+            return
         
         fig, axes = plt.subplots(2, 1, figsize=(10, 8))
         
-        # Smooth rewards
-        rewards = training_stats['episode_rewards']
-        window = 50
+        # Plot rewards
+        rewards = self.episode_rewards
+        window = min(50, len(rewards) // 10)
+        
         if len(rewards) >= window:
             smoothed_rewards = np.convolve(
                 rewards, 
                 np.ones(window)/window, 
                 mode='valid'
             )
-            axes[0].plot(smoothed_rewards, label='Smoothed')
+            axes[0].plot(smoothed_rewards, label=f'Smoothed (window={window})', linewidth=2)
         
-        axes[0].plot(rewards, alpha=0.3, label='Raw')
+        axes[0].plot(rewards, alpha=0.3, label='Raw', linewidth=0.5)
         axes[0].set_xlabel('Episode')
         axes[0].set_ylabel('Total Reward')
-        axes[0].set_title('Training Rewards')
+        axes[0].set_title(f'Training Rewards - {self.agent.name}')
         axes[0].legend()
-        axes[0].grid(True)
+        axes[0].grid(True, alpha=0.3)
         
-        # Episode lengths
-        lengths = training_stats['episode_lengths']
+        # Plot episode lengths
+        lengths = self.episode_lengths
         if len(lengths) >= window:
             smoothed_lengths = np.convolve(
                 lengths, 
                 np.ones(window)/window, 
                 mode='valid'
             )
-            axes[1].plot(smoothed_lengths, label='Smoothed')
+            axes[1].plot(smoothed_lengths, label=f'Smoothed (window={window})', linewidth=2)
         
-        axes[1].plot(lengths, alpha=0.3, label='Raw')
+        axes[1].plot(lengths, alpha=0.3, label='Raw', linewidth=0.5)
         axes[1].set_xlabel('Episode')
         axes[1].set_ylabel('Steps')
         axes[1].set_title('Episode Length')
         axes[1].legend()
-        axes[1].grid(True)
+        axes[1].grid(True, alpha=0.3)
         
         plt.tight_layout()
-        plt.savefig('training_curves.png')
-        print("\n📈 Training curves saved to 'training_curves.png'")
+        plt.savefig(save_path, dpi=150)
+        print(f"\n📈 Training curves saved to '{save_path}'")
         plt.show()

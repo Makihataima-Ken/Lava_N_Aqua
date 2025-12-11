@@ -113,5 +113,5 @@ class ControllerFactory:
         return cls.create(ControllerType.RL,
                           game_logic=game_logic,
                           agent = agent,
-                          move_delay=move_delay, 
-                          max_steps_per_episode=max_steps_per_episode)
+                          move_delay=move_delay)
+                        #   max_steps_per_episode=max_steps_per_episode)

@@ -211,9 +211,9 @@ class GameApplication:
                 visualize=visualize
             )
             
-            self._print_rl_summary(training_stats, eval_stats)
+            # self._print_rl_summary(training_stats, eval_stats)
             
-            self.current_controller.run_level(True)
+            self.current_controller.run_level(visualize=True,agent_path="C:\\Users\\ahmad\\Developement\\Lava_and_Aqua\\assets\\qlearning_agent.pkl")
             
         except Exception as e:
             print(f" Error in RL mode: {e}")
@@ -239,7 +239,7 @@ class GameApplication:
             self.game_logic,
             agent=agent,
             move_delay=0.05,
-            max_steps_per_episode=500
+            # max_steps_per_episode=10000
         )
         
         return self.current_controller.train(
@@ -310,7 +310,7 @@ class GameApplication:
         print(f"  Total steps: {training_stats['total_steps']}")
         print(f"  Training time: {training_stats['training_time']:.1f}s")
         
-        print(f"\nFinal Evaluation ({eval_stats['num_episodes']} episodes):")
+        # print(f"\nFinal Evaluation ({eval_stats['num_episodes']} episodes):")
         print(f"  Success rate: {eval_stats['success_rate']:.1%}")
         print(f"  Success count: {eval_stats['success_count']}/{eval_stats['num_episodes']}")
         print(f"  Avg reward: {eval_stats['avg_reward']:.2f} ± {eval_stats['std_reward']:.2f}")

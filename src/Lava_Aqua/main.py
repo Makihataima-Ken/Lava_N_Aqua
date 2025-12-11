@@ -51,6 +51,7 @@ def main_solver_ucs():
 #         move_delay=0.1,
 #         visualize=True
 #     )
+
 def main_agent_train_qlearning():
     """Train Q-Learning agent."""
     from src.Lava_Aqua.agents.qlearning_agent import QLearningAgent
@@ -61,13 +62,13 @@ def main_agent_train_qlearning():
     state_shape = (height, width, 6)
     
     agent = QLearningAgent(
-        state_shape = state_shape,
-        num_actions=4,
-        learning_rate=0.1,
-        gamma=0.99,
-        epsilon=1.0,
-        epsilon_decay=0.995,
-        epsilon_min=0.01
+        # state_shape = state_shape,
+        # num_actions=4,
+        # learning_rate=0.1,
+        # gamma=0.99,
+        # epsilon=1.0,
+        # epsilon_decay=0.995,
+        # epsilon_min=0.01
     )
     
     app.run(
