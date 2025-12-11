@@ -213,7 +213,7 @@ class GameApplication:
             
             # self._print_rl_summary(training_stats, eval_stats)
             
-            self.current_controller.run_level(visualize=True,agent_path="C:\\Users\\ahmad\\Developement\\Lava_and_Aqua\\assets\\qlearning_agent.pkl")
+            self.current_controller.run_level(visualize=True,agent_path="C:\\Users\\ahmad\\Developement\\Lava_and_Aqua\\assets\\trained models\\qlearning_agent.pkl")
             
         except Exception as e:
             print(f" Error in RL mode: {e}")

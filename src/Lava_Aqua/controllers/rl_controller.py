@@ -62,26 +62,48 @@ class RLController(BaseController):
         
         training_start = time.time()
         
-        # Agent trains directly on game logic
-        training_stats = self.agent.train(
-            game_logic=self.game_logic,
-            num_episodes=num_episodes,
-            eval_frequency=eval_frequency,
-            visualize=visualize,
-            move_delay=self.move_delay,
-            controller=self  # Pass controller for rendering if needed
-        )
+        for episode in range(1, num_episodes + 1):
+            result = self.agent.run_episode(
+                game_logic=self.game_logic,
+                training=True,
+                visualize=visualize,
+                move_delay=self.move_delay,
+                controller=self
+            )
+            
+            self.episode_rewards.append(result['total_reward'])
+            self.episode_lengths.append(result['steps'])
+            
+            # Logging
+            if episode % 10 == 0:
+                avg_reward = np.mean(self.episode_rewards[-10:])
+                avg_length = np.mean(self.episode_lengths[-10:])
+                print(
+                    f"Episode {episode}/{num_episodes} | "
+                    f"Reward: {avg_reward:.2f} | "
+                    f"Steps: {avg_length:.1f} | "
+                    f"ε: {self.agent.epsilon:.4f} | "
+                    f"States: {self.agent.stats['unique_states']}"
+                )
+            
+            # Evaluation
+            if episode % eval_frequency == 0:
+                eval_stats = self.evaluate(
+                    num_episodes=10,
+                    visualize=False,
+                )
+                print(f"  Eval - Success: {eval_stats['success_rate']:.1%}, "
+                      f"Reward: {eval_stats['avg_reward']:.2f}")
+        
         
         training_time = time.time() - training_start
-        
-        self.episode_rewards = training_stats.get('episode_rewards', [])
-        self.episode_lengths = training_stats.get('episode_lengths', [])
         
         self.on_train_complete(training_time)
         
         return {
             'training_time': training_time,
-            **training_stats
+            'episode_rewards':self.episode_rewards,
+            'episode_lengths':self.episode_lengths
         }
     
     def evaluate(
@@ -103,14 +125,33 @@ class RLController(BaseController):
         print(f"📊 Evaluating {self.agent.name}")
         print(f"{'='*60}")
         
-        # Agent evaluates itself
-        eval_stats = self.agent.evaluate(
-            game_logic=self.game_logic,
-            num_episodes=num_episodes,
-            visualize=visualize,
-            move_delay=self.move_delay,
-            controller=self
-        )
+        eval_rewards = []
+        eval_lengths = []
+        success_count = 0
+        
+        for _ in range(num_episodes):
+            result = self.agent.run_episode(
+                game_logic=self.game_logic,
+                training=False,
+                visualize=visualize,
+                move_delay=self.move_delay,
+                controller=self
+            )
+            
+            eval_rewards.append(result['total_reward'])
+            eval_lengths.append(result['steps'])
+            if result['level_complete']:
+                success_count += 1
+        
+        eval_stats = {
+            'num_episodes': num_episodes,
+            'success_rate': success_count / num_episodes,
+            'success_count': success_count,
+            'avg_reward': np.mean(eval_rewards),
+            'std_reward': np.std(eval_rewards),
+            'avg_steps': np.mean(eval_lengths),
+            'std_steps': np.std(eval_lengths)
+        }
         
         # Print results
         print(f"\n📊 Evaluation Results:")
@@ -141,23 +182,15 @@ class RLController(BaseController):
             print(f"Agent loaded from: {agent_path}")
         
         # Agent runs the level
-        result = self.agent.run_episode(
-            game_logic=self.game_logic,
-            training=False,
-            visualize=visualize,
-            move_delay=self.move_delay,
-            controller=self
-        )
+        result = self.agent.solve(self.game_logic)
         
-        # Determine outcome
-        if result['terminated']:
-            return GameResult.QUIT
-        elif result['level_complete']:
-            self.on_level_complete(result)
-            return GameResult.WIN
-        else:
-            self.on_game_over(result)
-            return GameResult.LOSE
+        for move in result:
+            self.game_logic.move_player(move)
+            
+            if visualize:
+                self.render_frame()
+                time.sleep(0.2)
+        
     
     def on_level_start(self) -> None:
         """Called when a level starts."""
@@ -216,7 +249,14 @@ class RLController(BaseController):
         """
         Process input events. Not used in RL controller during normal operation.
         """
-        pass
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return None, 'quit'
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    return None, 'quit'
+                if event.key == pygame.K_SPACE:
+                    return None, 'pause'
     
     def plot_training_curves(self, save_path: str = 'training_curves.png'):
         """

@@ -1,11 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Tuple, Optional, TYPE_CHECKING
-from src.Lava_Aqua.graphics.renderer import Renderer
-import numpy as np
+from typing import Dict, Any, List, Tuple, Optional
+from src.Lava_Aqua.core.constants import Direction
 
-if TYPE_CHECKING:
-    from src.Lava_Aqua.core.game import GameLogic
-    from src.Lava_Aqua.controllers.base_controller import BaseController
+
+from src.Lava_Aqua.core.game import GameLogic, GameState
+from src.Lava_Aqua.controllers.base_controller import BaseController
 
 
 class BaseAgent(ABC):
@@ -30,61 +29,6 @@ class BaseAgent(ABC):
             'total_episodes': 0,
             'total_steps': 0,
         }
-    
-    @abstractmethod
-    def train(
-        self,
-        game_logic: 'GameLogic',
-        num_episodes: int,
-        eval_frequency: int = 100,
-        visualize: bool = False,
-        move_delay: float = 0.05,
-        controller: Optional['BaseController'] = None
-    ) -> Dict[str, Any]:
-        """
-        Train the agent on the given game logic.
-        
-        Args:
-            game_logic: Game logic instance to train on
-            num_episodes: Number of training episodes
-            eval_frequency: Evaluate every N episodes
-            visualize: Whether to render training
-            move_delay: Delay between moves for visualization
-            controller: Optional controller for rendering
-            
-        Returns:
-            Training statistics dict with at least:
-                - episode_rewards: List[float]
-                - episode_lengths: List[int]
-        """
-        pass
-    
-    @abstractmethod
-    def evaluate(
-        self,
-        game_logic: 'GameLogic',
-        num_episodes: int = 100,
-        visualize: bool = False,
-        move_delay: float = 0.05,
-        controller: Optional['BaseController'] = None
-    ) -> Dict[str, Any]:
-        """
-        Evaluate the agent without training.
-        
-        Args:
-            game_logic: Game logic instance
-            num_episodes: Number of evaluation episodes
-            visualize: Whether to render evaluation
-            move_delay: Delay between moves
-            controller: Optional controller for rendering
-            
-        Returns:
-            Evaluation statistics dict with at least:
-                - success_rate: float
-                - avg_reward: float
-                - avg_steps: float
-        """
-        pass
     
     @abstractmethod
     def run_episode(
@@ -116,6 +60,19 @@ class BaseAgent(ABC):
         pass
     
     @abstractmethod
+    def solve(self,game_logic:'GameLogic')->Optional[List[Direction]]:
+        """
+        Run a level by a trained model
+
+        Args:
+            game_logic (GameLogic): Game logic instance
+
+        Returns:
+            List of moves that solves the game
+        """
+        pass
+    
+    @abstractmethod
     def save(self, filepath: str) -> None:
         """
         Save agent to file.
@@ -134,6 +91,18 @@ class BaseAgent(ABC):
             filepath: Path to load the agent from
         """
         pass
+    
+    def _hash_state(self, state: GameState) -> str:
+
+        player_hash = str(state.player_pos)
+        boxes_hash = str(sorted(state.box_positions))
+        keys_hash = str(sorted(state.collected_key_indices))
+        lava_hash = str(sorted(state.lava_positions))
+        aqua_hash = str(sorted(state.aqua_positions))
+        temp_wall_hash = str(sorted(state.temp_wall_data))
+        altered_positions_hash = str(sorted(state.altered_tile_positions))
+        
+        return f"{player_hash}|{boxes_hash}|{keys_hash}|{lava_hash}|{aqua_hash}{temp_wall_hash}{altered_positions_hash}"
     
     def get_stats(self) -> Dict[str, Any]:
         """
@@ -159,20 +128,3 @@ class BaseAgent(ABC):
                 print(f"  {key}: {value:.4f}")
             else:
                 print(f"  {key}: {value}")
-                
-    def _setup_renderer(self,simulation:GameLogic) -> Renderer:
-            """Setup renderer based on grid dimensions.
-            
-            Returns:
-                Renderer instance
-            """
-            tile_grid = simulation.get_grid()
-            
-            if not tile_grid:
-                raise ValueError("No grid available")
-            
-            screen_width = tile_grid.get_width()
-            screen_height = tile_grid.get_height() 
-            caption = simulation.get_level_description()
-            
-            return Renderer(screen_width, screen_height, caption)
