@@ -183,6 +183,8 @@ class QLearningAgent(BaseAgent):
         
         path =[]
         
+        success = 0
+        
         while steps < self.max_steps:
             # Get current state
             state_hash = self._hash_state(simulation.get_state())
@@ -196,15 +198,15 @@ class QLearningAgent(BaseAgent):
             # Execute action
             simulation.move_player(action)
 
-            steps += 1
+            steps += 1 
             
-            # Learn (if training)
-            done = simulation.level_complete or simulation.game_over
-            
-            if done:
+            if simulation.level_complete:
+                success = 1 
                 break
-        
-        return path
+            if simulation.game_over:
+                break
+            
+        return path,success
     
     def save(self, filepath: str) -> None:
         """Save Q-table and agent state."""

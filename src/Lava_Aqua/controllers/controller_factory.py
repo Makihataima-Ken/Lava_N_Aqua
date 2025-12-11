@@ -99,8 +99,7 @@ class ControllerFactory:
     def create_rl(  cls,
                     game_logic: GameLogic,
                     agent: BaseAgent,
-                    move_delay: float = 0.05,
-                    max_steps_per_episode: int = 500) -> RLController:
+                    move_delay: float = 0.05) -> RLController:
         
         """Create a reinforcement learning controller.
             Args:
@@ -114,4 +113,3 @@ class ControllerFactory:
                           game_logic=game_logic,
                           agent = agent,
                           move_delay=move_delay)
-                        #   max_steps_per_episode=max_steps_per_episode)

@@ -182,14 +182,21 @@ class RLController(BaseController):
             print(f"Agent loaded from: {agent_path}")
         
         # Agent runs the level
-        result = self.agent.solve(self.game_logic)
+        moves,state = self.agent.solve(self.game_logic)
         
-        for move in result:
+        for move in moves:
             self.game_logic.move_player(move)
             
             if visualize:
                 self.render_frame()
                 time.sleep(0.2)
+                
+        self.on_level_complete(len(moves))
+        
+        if state:
+            return GameResult.WIN
+        else:
+            return GameResult.LOSS
         
     
     def on_level_start(self) -> None:
@@ -209,12 +216,11 @@ class RLController(BaseController):
         print(f"Agent: {self.agent.name}")
         print(f"{'='*70}")
     
-    def on_level_complete(self, result: Dict[str, Any]) -> None:
+    def on_level_complete(self, steps:int) -> None:
         """Called when a level is completed."""
         print(f"\n{'='*70}")
         print(f"🎉 Level Complete!")
-        print(f"  Total steps: {result.get('steps', 0)}")
-        print(f"  Total reward: {result.get('total_reward', 0):.2f}")
+        print(f"  Total steps: {steps}")
         print(f"{'='*70}")
     
     def on_train_complete(self, training_time: float) -> None:
@@ -227,7 +233,6 @@ class RLController(BaseController):
             print(f"  Total episodes: {len(self.episode_rewards)}")
             print(f"  Final avg reward: {np.mean(self.episode_rewards[-100:]):.2f}")
         
-        # Print agent-specific stats
         agent_stats = self.agent.get_stats()
         if agent_stats:
             print(f"\n  Agent Statistics:")
@@ -241,7 +246,7 @@ class RLController(BaseController):
     
     def on_game_over(self, result: Dict[str, Any]) -> None:
         """Called when game over occurs."""
-        print(f"\n💀 Game Over")
+        print(f"\n Game Over")
         print(f"  Steps survived: {result.get('steps', 0)}")
         print(f"  Total reward: {result.get('total_reward', 0):.2f}")
     

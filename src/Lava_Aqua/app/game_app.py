@@ -22,7 +22,7 @@ class GameApplication:
     
     def _print_welcome(self) -> None:
         """Print welcome message."""
-        print(" Lava & Aqua")
+        print("🎮 Lava & Aqua")
         print("=" * 40)
         print("Controls:")
         print("  WASD or Arrow Keys - Move")
@@ -36,9 +36,9 @@ class GameApplication:
         try:
             self.game_logic = GameLogic()
             total_levels = self.game_logic.get_total_levels()
-            print(f"\n Loaded {total_levels} levels")
+            print(f"\n✅ Loaded {total_levels} levels")
         except Exception as e:
-            print(f"Error loading game: {e}")
+            print(f"❌ Error loading game: {e}")
             import traceback
             traceback.print_exc()
             sys.exit(1)
@@ -68,7 +68,7 @@ class GameApplication:
         while not self.game_logic.is_last_level() or not self.game_logic.level_complete:
             
             try:
-                print(f"\n Lava & Aqua - Level  {self.game_logic.get_level_description()}")
+                print(f"\n🎮 Lava & Aqua - Level {self.game_logic.get_level_description()}")
                 
                 self.current_controller = ControllerFactory.create_player(self.game_logic)
                 result = self.current_controller.run_level()
@@ -86,10 +86,10 @@ class GameApplication:
                             break
                 elif result == GameResult.RESTART:
                     self.game_logic.reset_level()
-                    print(f" Restarting level {self.game_logic.get_level_description()}")
+                    print(f"🔄 Restarting level {self.game_logic.get_level_description()}")
                     
             except Exception as e:
-                print(f" Error running level: {e}")
+                print(f"❌ Error running level: {e}")
                 import traceback
                 traceback.print_exc()
                 break
@@ -105,7 +105,7 @@ class GameApplication:
             move_delay: Delay between moves in seconds
             visualize: Whether to render the solving process
         """
-        print(f"\n Starting solver mode with {solver.name}")
+        print(f"\n🤖 Starting solver mode with {solver.name}")
         print("=" * 60)
         
         total_stats = {
@@ -119,7 +119,7 @@ class GameApplication:
             while not self.game_logic.is_last_level() or not self.game_logic.level_complete:
                 
                 try:
-                    print(f"\n Lava & Aqua - Level {self.game_logic.get_level_description()}")
+                    print(f"\n🎮 Lava & Aqua - Level {self.game_logic.get_level_description()}")
                     
                     self.current_controller = ControllerFactory.create_solver(
                         self.game_logic,
@@ -155,14 +155,14 @@ class GameApplication:
                         total_stats['failed_levels'].append(
                             (self.game_logic.get_level_number(), self.game_logic.get_level_name())
                         )
-                        print(f"\n Solver failed on level {self.game_logic.get_level_description()}")
+                        print(f"\n⚠️ Solver failed on level {self.game_logic.get_level_description()}")
 
                         if not self.game_logic.next_level():
                             print("No more levels!")
                             break
                         
                 except Exception as e:
-                    print(f" Error solving level: {e}")
+                    print(f"❌ Error solving level: {e}")
                     import traceback
                     traceback.print_exc()
                     break
@@ -180,7 +180,7 @@ class GameApplication:
             move_delay: Delay between moves in seconds
             visualize: Whether to render the training/evaluation process
         """
-        print(f"\n Starting RL mode with {agent.name}")
+        print(f"\n🤖 Starting RL mode with {agent.name}")
         print("=" * 60)
         
         try:
@@ -188,42 +188,54 @@ class GameApplication:
             self.current_controller = ControllerFactory.create_rl(
                 game_logic=self.game_logic,
                 agent=agent,
-                move_delay=move_delay,
-                max_steps_per_episode=500
+                move_delay=move_delay
             )
             
             # Training mode
-            print("\nStarting training phase...")
+            print("\n📚 Starting training phase...")
             training_stats = self.current_controller.train(
                 num_episodes=1000,
-                eval_frequency=100
-            )
-            
-            self.current_controller.agent.save('qlearning_agent.pkl')
-            print("\n Agent saved to 'qlearning_agent.pkl'")
-            
-            # Final evaluation
-            print("\n" + "=" * 60)
-            print("FINAL EVALUATION")
-            print("=" * 60)
-            eval_stats = self.current_controller.evaluate(
-                num_episodes=100,
+                eval_frequency=100,
                 visualize=visualize
             )
             
-            # self._print_rl_summary(training_stats, eval_stats)
+            # Save trained agent
+            agent.save('qlearning_agent.pkl')
+            print("\n💾 Agent saved to 'qlearning_agent.pkl'")
             
-            self.current_controller.run_level(visualize=True,agent_path="C:\\Users\\ahmad\\Developement\\Lava_and_Aqua\\assets\\trained models\\qlearning_agent.pkl")
+            # Final evaluation
+            print("\n" + "=" * 60)
+            print("📊 FINAL EVALUATION")
+            print("=" * 60)
+            eval_stats = self.current_controller.evaluate(
+                num_episodes=100,
+                visualize=False
+            )
+            
+            self._print_rl_summary(training_stats, eval_stats)
+            
+            # Optional: Run a visualization episode
+            print("\n🎬 Running visualization episode...")
+            result = self.current_controller.run_level(
+                visualize=True,
+                agent_path=None  # Already loaded
+            )
+            
+            if result == GameResult.WIN:
+                print("✅ Agent successfully completed the level!")
+            elif result == GameResult.LOSS:
+                print("❌ Agent failed to complete the level")
             
         except Exception as e:
-            print(f" Error in RL mode: {e}")
+            print(f"❌ Error in RL mode: {e}")
             import traceback
             traceback.print_exc()
         finally:
             self._cleanup()
     
     def train_rl_agent(self, agent: BaseAgent, num_episodes: int = 1000,
-                      eval_frequency: int = 100, visualize: bool = False) -> dict:
+                      eval_frequency: int = 100, visualize: bool = False,
+                      save_path: str = 'qlearning_agent.pkl') -> dict:
         """Train an RL agent on the current level.
         
         Args:
@@ -231,44 +243,93 @@ class GameApplication:
             num_episodes: Number of training episodes
             eval_frequency: Evaluate every N episodes
             visualize: Whether to render training
+            save_path: Path to save trained agent
             
         Returns:
             Training statistics dictionary
         """
+        print(f"\n🎓 Training {agent.name} on {self.game_logic.get_level_description()}")
+        
         self.current_controller = ControllerFactory.create_rl(
             self.game_logic,
             agent=agent,
-            move_delay=0.05,
-            # max_steps_per_episode=10000
+            move_delay=0.05
         )
         
-        return self.current_controller.train(
+        training_stats = self.current_controller.train(
             num_episodes=num_episodes,
-            eval_frequency=eval_frequency
+            eval_frequency=eval_frequency,
+            visualize=visualize
         )
+        
+        # Save agent
+        if save_path:
+            agent.save(save_path)
+            print(f"\n💾 Agent saved to '{save_path}'")
+        
+        return training_stats
     
     def evaluate_rl_agent(self, agent: BaseAgent, num_episodes: int = 100,
-                         visualize: bool = True) -> dict:
+                         visualize: bool = True, agent_path: Optional[str] = None) -> dict:
         """Evaluate an RL agent on the current level.
         
         Args:
             agent: RL agent to evaluate
             num_episodes: Number of evaluation episodes
             visualize: Whether to render evaluation
+            agent_path: Optional path to load agent from
             
         Returns:
             Evaluation statistics dictionary
         """
+        print(f"\n📊 Evaluating {agent.name} on {self.game_logic.get_level_description()}")
+        
+        # Load agent if path provided
+        if agent_path:
+            agent.load(agent_path)
+            print(f"📂 Agent loaded from '{agent_path}'")
+        
         self.current_controller = ControllerFactory.create_rl(
             self.game_logic,
             agent=agent,
-            move_delay=0.2,
-            max_steps_per_episode=500
+            move_delay=0.2
         )
         
-        return self.current_controller.evaluate(
+        eval_stats = self.current_controller.evaluate(
             num_episodes=num_episodes,
             visualize=visualize
+        )
+        
+        return eval_stats
+    
+    def run_rl_agent_on_level(self, agent: BaseAgent, visualize: bool = True,
+                             agent_path: Optional[str] = None) -> GameResult:
+        """Run a trained RL agent on the current level (single episode).
+        
+        Args:
+            agent: RL agent to run
+            visualize: Whether to render the episode
+            agent_path: Optional path to load agent from
+            
+        Returns:
+            GameResult indicating outcome
+        """
+        print(f"\n🎮 Running {agent.name} on {self.game_logic.get_level_description()}")
+        
+        # Load agent if path provided
+        if agent_path:
+            agent.load(agent_path)
+            print(f"📂 Agent loaded from '{agent_path}'")
+        
+        self.current_controller = ControllerFactory.create_rl(
+            self.game_logic,
+            agent=agent,
+            move_delay=0.2
+        )
+        
+        return self.current_controller.run_level(
+            visualize=visualize,
+            agent_path=None  # Already loaded
         )
     
     def _print_solver_summary(self, stats: dict) -> None:
@@ -278,18 +339,20 @@ class GameApplication:
             stats: Dictionary of solver statistics
         """
         print("\n" + "=" * 60)
-        print("SOLVER SUMMARY")
+        print("📊 SOLVER SUMMARY")
         print("=" * 60)
-        print(f"Levels solved: {stats['levels_solved']}")
-        print(f"Total moves: {stats['total_moves']}")
-        print(f"Total time: {stats['total_time']:.2f}s")
+        print(f"✅ Levels solved: {stats['levels_solved']}")
+        print(f"🎯 Total moves: {stats['total_moves']}")
+        print(f"⏱️ Total time: {stats['total_time']:.2f}s")
         
-        if stats['total_moves'] > 0:
+        if stats['levels_solved'] > 0:
             avg_moves = stats['total_moves'] / stats['levels_solved']
-            print(f"Average moves per level: {avg_moves:.1f}")
+            avg_time = stats['total_time'] / stats['levels_solved']
+            print(f"📈 Average moves per level: {avg_moves:.1f}")
+            print(f"📈 Average time per level: {avg_time:.2f}s")
         
         if stats['failed_levels']:
-            print(f"\nFailed levels ({len(stats['failed_levels'])}):")
+            print(f"\n❌ Failed levels ({len(stats['failed_levels'])}):")
             for level_num, level_name in stats['failed_levels']:
                 print(f"  - Level {level_num}: {level_name}")
         
@@ -303,28 +366,43 @@ class GameApplication:
             eval_stats: Evaluation statistics
         """
         print("\n" + "=" * 60)
-        print("RL TRAINING & EVALUATION SUMMARY")
+        print("📊 RL TRAINING & EVALUATION SUMMARY")
         print("=" * 60)
-        print(f"\nTraining:")
-        print(f"  Total episodes: {training_stats['total_episodes']}")
-        print(f"  Total steps: {training_stats['total_steps']}")
-        print(f"  Training time: {training_stats['training_time']:.1f}s")
         
-        # print(f"\nFinal Evaluation ({eval_stats['num_episodes']} episodes):")
-        print(f"  Success rate: {eval_stats['success_rate']:.1%}")
-        print(f"  Success count: {eval_stats['success_count']}/{eval_stats['num_episodes']}")
-        print(f"  Avg reward: {eval_stats['avg_reward']:.2f} ± {eval_stats['std_reward']:.2f}")
-        print(f"  Avg steps: {eval_stats['avg_steps']:.1f} ± {eval_stats['std_steps']:.1f}")
+        print(f"\n📚 Training:")
+        if 'episode_rewards' in training_stats:
+            print(f"  Episodes: {len(training_stats['episode_rewards'])}")
+        if 'total_steps' in training_stats:
+            print(f"  Total steps: {training_stats['total_steps']}")
+        if 'training_time' in training_stats:
+            print(f"  Training time: {training_stats['training_time']:.1f}s")
+        
+        # Agent-specific stats
+        agent_stats = training_stats.get('agent_stats', {})
+        if agent_stats:
+            print(f"\n🤖 Agent Statistics:")
+            for key, value in agent_stats.items():
+                if isinstance(value, float):
+                    print(f"  {key}: {value:.4f}")
+                else:
+                    print(f"  {key}: {value}")
+        
+        print(f"\n📊 Final Evaluation ({eval_stats['num_episodes']} episodes):")
+        print(f"  ✅ Success rate: {eval_stats['success_rate']:.1%}")
+        print(f"  🎯 Success count: {eval_stats['success_count']}/{eval_stats['num_episodes']}")
+        print(f"  🏆 Avg reward: {eval_stats['avg_reward']:.2f} ± {eval_stats.get('std_reward', 0):.2f}")
+        print(f"  👣 Avg steps: {eval_stats['avg_steps']:.1f} ± {eval_stats.get('std_steps', 0):.1f}")
         print("=" * 60)
     
     def _print_victory(self) -> None:
         """Print victory message."""
         print("\n" + "=" * 40)
-        print("CONGRATULATIONS! \nYou beat all levels!")
+        print("🎉 CONGRATULATIONS!")
+        print("You beat all levels!")
         print("=" * 40)
     
     def _cleanup(self) -> None:
         """Clean up and exit."""
-        print("\nThanks for playing!")
+        print("\n👋 Thanks for playing!")
         pygame.quit()
         sys.exit(0)

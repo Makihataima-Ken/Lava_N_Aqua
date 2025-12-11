@@ -75,6 +75,7 @@ class GameResult(Enum):
     RESTART = 'restart'
     QUIT = 'quit'
     CONTINUE = 'continue'
+    LOSS = 'loss'
     
 class Direction(Enum):
     """Movement directions."""
