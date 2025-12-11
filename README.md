@@ -1,118 +1,115 @@
 # Lava & Aqua
 
-Lava & Aqua is a small puzzle game implemented in Python using Pygame.
-The player navigates a level with boxes, lava, and an exit — and the project
-includes solver algorithms to automatically find solutions for
-levels.
+Lava & Aqua is a compact, educational puzzle game and solver sandbox written
+in Python. Play interactively, or run automated solvers (BFS, DFS, UCS) and an
+RL-based Q-learning agent to experiment with search and reinforcement learning
+techniques on small grid-based levels.
 
-**Table of contents**
+**Current status**
 
-- **Project**: overview and goals
-- **Features**: gameplay and solver modes
-- **Requirements**: dependencies and environment
-- **Install**: setup steps for Windows (PowerShell)
-- **Run**: how to run the game and solver modes
-- **Project structure**: important modules and responsibilities
-- **Contributing**: how to help and add levels/solvers
+- Playable interactive mode using Pygame.
+- Multiple solver implementations included: BFS, DFS, UCS.
+- Basic Q-learning agent and RL controller under `src/Lava_Aqua/agents`.
+- Levels and recorded solutions in `assets/levels` and `assets/solutions`.
 
-**Project**
+**Goals**
 
-Lava & Aqua is a top-down puzzle game where the player must reach an exit
-while avoiding hazards (lava) and manipulating boxes. The repository includes
-both interactive play and automated solvers so you can run the game manually or have the solver attempt to
-solve levels with optional visualization.
+- Provide a compact codebase for learning search algorithms and simple RL.
+- Make it easy to add new levels, solvers, and agents for experimentation.
 
-**Features**
+**Quick start (Windows)**
 
-- Player-controlled mode (keyboard)
-- Solver mode (a base solver interface for adding algorithms)
-- Level data stored under `assets/levels/` as JSON files
-- Simple rendering using Pygame (see `src/Lava_Aqua/graphics`)
+1. Create and activate a virtual environment, then install the package in
+   editable mode:
 
-**Requirements**
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -e .
+```
 
-- Python 3.10+ (project was developed with Python 3.12; adjust as needed)
-- Pygame (tested with 2.6.x)
-- Optional: your chosen runner; the project expects to be run as a module
-	(examples below use `python -m` or `uv run -m` as in your environment)
-
-**Run the game**
-
-You can run the project as a module. Two common ways shown below:
-
-Using plain Python (recommended):
+2. Run the interactive game:
 
 ```powershell
 python -m src.Lava_Aqua.main --mode play
 ```
 
-If you want the BFS solver mode:
+3. Run a solver (example: BFS):
 
 ```powershell
 python -m src.Lava_Aqua.main --mode bfs
 ```
 
-If your environment uses a runner called `uv` (as in the provided example),
-use the same arguments but with that runner:
+4. Train / run Q-learning (example):
 
 ```powershell
-uv run -m src.Lava_Aqua.main --mode bfs
+python -m src.Lava_Aqua.main --mode qlearning
 ```
 
-Command-line options (from `src/Lava_Aqua/main.py`):
-- `--mode`: one of `play`, `bfs`, `dfs`, `random` (default: `play`)
+Tip: some environments include a runner named `uv`; you can use
+`uv run -m src.Lava_Aqua.main --mode <mode>` if preferred.
 
-**Project structure (key files)**
+**Command-line options**
 
-- `src/Lava_Aqua/__main__.py` / `src/Lava_Aqua/main.py`: CLI entrypoints and
-	high-level launch code. Use `--mode` to switch between play and solver.
-- `src/Lava_Aqua/app/game_app.py`: application wrapper that manages the Pygame
-	loop and provides `run()` and `run_with_solver()` APIs.
-- `src/Lava_Aqua/core/`: core game logic and constants (levels, tiles, rules).
-- `src/Lava_Aqua/entities/`: game entities such as `player`, `lava`, `box`,
-	and `temporary_wall` implementations.
-- `src/Lava_Aqua/algorithms/`: solver implementations.`BaseSolver` defines the
-	solver interface.
-- `src/Lava_Aqua/graphics/`: rendering code and tile/grid helpers.
-- `assets/levels/`: example level JSON files. Add new levels here to test.
+- `--mode` : Choose one of `play`, `bfs`, `dfs`, `ucs`, `qlearning` (see
+  `src/Lava_Aqua/main.py` for the exact set of supported modes).
+- `--level`: (optional) specify a level filename from `assets/levels/`.
 
-**Usage examples**
+Check `src/Lava_Aqua/main.py` for the full set of runtime options and flags.
 
-- Play locally (interactive):
+**Project layout (overview)**
 
-```powershell
-python -m src.Lava_Aqua.main --mode play
-```
+- `src/Lava_Aqua/core/` — game rules, level parsing, constants, and state.
+- `src/Lava_Aqua/entities/` — entity implementations: `player`, `lava`, `box`,
+  `temporary_wall`, `exit_key`, etc.
+- `src/Lava_Aqua/graphics/` — rendering helpers, grid and tile code.
+- `src/Lava_Aqua/controllers/` — `player_controller`, `solver_controller`,
+  `rl_controller` and factory wiring.
+- `src/Lava_Aqua/algorithms/` — `BaseSolver` and search algorithm
+  implementations (BFS, DFS, UCS).
+- `src/Lava_Aqua/agents/` — RL agents and helpers (Q-learning agent).
+- `assets/levels/` — level JSON files used by the game and solvers.
+- `assets/solutions/` — recorded solver traces and example solutions.
 
-**Adding a level**
+**Adding levels**
 
-1. Create a JSON file in `assets/levels/` following the format of
-	 existing sample levels (see `test.json` and `walls_test.json`).
-2. Launch the game; the level loader will include any properly structured
-	 level files found in that folder.
+1. Copy an example from `assets/levels/` and modify the JSON to define a new
+   layout and entities.
+2. (Optional) add a matching solution file under `assets/solutions/` for
+   regression testing.
 
-**Adding a solver**
+Follow existing files in `assets/levels/` as templates.
 
-1. Implement a new solver class that inherits from `BaseSolver` in
-	 `src/Lava_Aqua/algorithms/`.
-2. Expose the new solver in `src/Lava_Aqua/algorithms/__init__.py` so it can
-	 be imported from `src.Lava_Aqua.algorithms`.
-3. Wire it into `src/Lava_Aqua/main.py` if you want a CLI mode for it.
+**Adding a solver or agent**
 
-**Development notes**
+1. Implement a solver by subclassing `BaseSolver` in
+   `src/Lava_Aqua/algorithms/base_solver.py`.
+2. Add tests or a sample level that demonstrates the solver behavior.
+3. Wire the solver into the CLI in `src/Lava_Aqua/main.py` if you want a
+   dedicated `--mode` for it.
 
-- The project follows a small MVC-like separation: `core` (model & rules),
-	`graphics` (view), and `controllers` / `algorithms` (input & solvers).
-- Keep changes small and run the game frequently while developing new
-	mechanics or solvers. Use `deepcopy` carefully in solvers for performance
-	sensitive work.
+For RL agents, follow the patterns in `src/Lava_Aqua/agents/qlearning_agent.py`
+and the RL controller in `src/Lava_Aqua/controllers/rl_controller.py`.
+
+**Development & testing**
+
+- Keep the edit-run-debug cycle short: run small levels when changing rules.
+- Use recorded solutions in `assets/solutions/` to validate solver changes.
+- Avoid heavy state copying in performance-sensitive solver code; profile if
+  needed.
+
+**Dependencies**
+
+- Python 3.10+ (project developed against 3.12).
+- Pygame for rendering (tested with 2.6.x).
+
 
 **Contributing**
 
-- Fork the repo, create a feature branch, and open a pull request. Provide a
-	clear description of changes and test instructions.
-- For new solvers, include sample levels where the solver behavior can be
-	reproduced.
+- Fork, create a branch, and open a pull request with tests or sample levels.
+- For new solvers, include minimal levels that reproduce the solver's use
+  cases and link them in the PR description.
+
 
 
 
