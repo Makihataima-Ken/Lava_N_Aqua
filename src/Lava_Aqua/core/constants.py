@@ -13,6 +13,9 @@ class Color:
     DARK_GRAY = (64, 64, 64)
     LIGHT_GRAY = (192, 192, 192)
     
+    BLUE = (50, 150, 255)
+    RED = (220, 50, 50)
+    
     # Tile colors
     LAVA = (255, 69, 0)
     LAVA_DARK = (200, 40, 0)
@@ -89,3 +92,12 @@ class Action(Enum):
     RESET = 'reset'
     UNDO = 'undo'
     QUIT = 'quit'
+    
+    
+CONTROLLER_OPTIONS = [
+    "Player",
+    "BFS",
+    "DFS",
+    "UCS",
+    "Q-Learning"
+]

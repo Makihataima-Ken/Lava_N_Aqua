@@ -146,6 +146,17 @@ class GameLogic:
             self.load_current_level()
             return True
         return False
+    
+    def load_level(self, level_index: int) -> None:
+        """
+        Load a specific level by index.
+        """
+        if level_index < 0 or level_index >= self.level_manager.get_level_count():
+            raise IndexError(f"Invalid level index: {level_index}")
+
+        self.level_manager.current_level_index = level_index
+        self.load_current_level()
+
         
     def _get_active_temp_wall_at(self, pos: Tuple[int, int]) -> Optional[TemporaryWall]:
         for wall in self.temp_walls:

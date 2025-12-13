@@ -178,3 +178,12 @@ class Renderer:
         # Control solver animation speed
         if delay > 0:
             time.sleep(delay)
+
+
+    def draw_training_info(self, episode, epsilon, reward):
+        text = self.font.render(
+            f"Episode: {episode} | ε: {epsilon:.3f} | Reward: {reward:.1f}",
+            True,
+            (255, 255, 0)
+        )
+        self.screen.blit(text, (10, self.screen.get_height() - 30))

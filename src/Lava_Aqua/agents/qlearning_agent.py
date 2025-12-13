@@ -85,11 +85,6 @@ class QLearningAgent(BaseAgent):
         
         q_values[action] += self.lr * (target - q_values[action])
         self.stats['q_updates'] += 1
-        
-        # Decay epsilon
-        if self.epsilon > self.epsilon_min:
-            self.epsilon *= self.epsilon_decay
-            self.stats['current_epsilon'] = self.epsilon
     
     def run_episode(
         self,
@@ -101,7 +96,6 @@ class QLearningAgent(BaseAgent):
     ) -> Dict[str, Any]:
         """
         Run a single episode.
-        Simple and clean like DFS solve().
         """
         # Use a copy for simulation
         simulation = deepcopy(game_logic)
@@ -155,6 +149,11 @@ class QLearningAgent(BaseAgent):
             if done or terminated:
                 break
         
+        # Decay epsilon
+        if self.epsilon > self.epsilon_min:
+            self.epsilon *= self.epsilon_decay
+            self.stats['current_epsilon'] = self.epsilon
+            
         self.stats['total_episodes'] += 1
         
         return {
