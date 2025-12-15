@@ -103,40 +103,17 @@ class GameLogic:
         if not self.history:
             return False
         
+        # Pop the state from history and load it.
+        # The new load_state method will correctly handle the grid changes.
         state = self.history.pop()
-        self.player.set_position(state.player_pos)
-        self.lava.set_positions(set(state.lava_positions))
-        self.aqua.set_positions(set(state.aqua_positions))
-            
-        for i, pos in enumerate(state.box_positions):
-            self.boxes[i].set_position(pos)
-            
-        for pos, duration in state.temp_wall_data:
-            wall = self._get_temp_wall_at(pos)
-            if wall:
-                wall.set_remaining_duration(duration)
-                
-        for i, key in enumerate(self.exit_keys):
-            if i in state.collected_key_indices:
-                key.collect()
-            else:
-                key.uncollect()
+        self.load_state(state)
         
-        current_altered_set = set(self.altered_tile_positions)
-        saved_altered_set = set(state.altered_tile_positions)
-        tiles_to_revert = current_altered_set - saved_altered_set
-
-        if self.grid:
-            for pos in tiles_to_revert:
-                self.grid.set_tile_type(pos[0], pos[1], TileType.EMPTY)
-
-        self.altered_tile_positions = state.altered_tile_positions
-        
-        self.moves = state.moves
+        # We also need to restore game_over and level_complete flags, which load_state doesn't manage
         self.game_over = False
         self.level_complete = False
         
         return True
+
     
     def reset_level(self) -> None:
         self.load_current_level()
@@ -372,6 +349,12 @@ class GameLogic:
         """
         return self.grid
     
+    def get_exit_position(self) -> Tuple[int, int]:
+        """Get the exit position."""
+        return self.exit_pos
+    
+    def get_key_positions(self) -> List[Tuple[int,int]]:
+        return [key.get_position() for key in self.exit_keys ]
     
     # Algorithms helper functions ----------------------------------------------
 

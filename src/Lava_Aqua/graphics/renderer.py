@@ -140,7 +140,7 @@ class Renderer:
     def draw_solver_step(
         self,
         game_logic: GameLogic,
-        delay: float = 0.15,
+        delay: float = 0.1,
         show_ui: bool = True,
         animation_time: float = 0.0
     ) -> None:

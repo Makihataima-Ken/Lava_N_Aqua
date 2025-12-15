@@ -53,15 +53,15 @@ def main_solver_dijkstra():
         visualize=True
     )
     
-# def main_solver_aStar():
-#     from src.Lava_Aqua.algorithms.aStar_solver import AStarSolver
-#     app = GameApplication()
-#     solver = AStarSolver()
-#     app.run(
-#         solver=solver,
-#         move_delay=0.1,
-#         visualize=True
-#     )
+def main_solver_aStar():
+    from src.Lava_Aqua.algorithms.aStar_solver import AStarSolver
+    app = GameApplication()
+    solver = AStarSolver()
+    app.run(
+        solver=solver,
+        move_delay=0.1,
+        visualize=True
+    )
 
 def main_agent_train_qlearning():
     """Train Q-Learning agent."""
@@ -130,8 +130,8 @@ def main():
         main_solver_dijkstra()
     elif args.mode == 'qlearning':
         main_agent_train_qlearning()
-    # elif args.mode == 'aStar':
-    #     main_solver_aStar()
+    elif args.mode == 'aStar':
+        main_solver_aStar()
 
 
 if __name__ == "__main__":

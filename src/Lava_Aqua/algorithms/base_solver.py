@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from src.Lava_Aqua.core.game import GameLogic, GameState
 from src.Lava_Aqua.core.constants import Direction
 from dataclasses import dataclass
@@ -73,6 +73,29 @@ class BaseSolver(ABC):
         
         return f"{player_hash}|{boxes_hash}|{keys_hash}|{lava_hash}|{aqua_hash}{temp_wall_hash}{altered_positions_hash}"
     
+    def _manhattan_distance(self, pos1: Tuple[int, int], pos2: Tuple[int, int]) -> int:
+        """Calculate Manhattan distance between two positions.
+        
+        Args:
+            pos1: First position (x, y)
+            pos2: Second position (x, y)
+            
+        Returns:
+            Manhattan distance
+        """
+        return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
+    
+    def _euclidean_distance(self, pos1: Tuple[int, int], pos2: Tuple[int, int]) -> float:
+        """Calculate Euclidean distance between two positions.
+        
+        Args:
+            pos1: First position (x, y)
+            pos2: Second position (x, y)
+            
+        Returns:
+            Euclidean distance
+        """
+        return ((pos1[0] - pos2[0])**2 + (pos1[1] - pos2[1])**2)**0.5
     
     # Helper methods for JSON serialization of stats
     

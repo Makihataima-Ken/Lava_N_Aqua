@@ -99,5 +99,7 @@ CONTROLLER_OPTIONS = [
     "BFS",
     "DFS",
     "UCS",
+    "Dijkstra",
+    "A*",
     "Q-Learning"
 ]

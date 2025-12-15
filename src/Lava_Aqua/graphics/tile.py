@@ -1,6 +1,6 @@
 """Tile entity and tile rendering."""
 
-from typing import Tuple, List, Optional
+from typing import Tuple
 import pygame
 import math
 
@@ -55,7 +55,7 @@ class Tile:
     
     def _is_walkable(self) -> bool:
         """Determine if current tile type is walkable."""
-        return self._tile_type in [TileType.EMPTY, TileType.EXIT, TileType.Key, TileType.Dark_Wall]
+        return self._tile_type in [TileType.EMPTY, TileType.EXIT, TileType.Dark_Wall]
     
     def is_flowable(self) -> bool:
         """Check if tile can be flowed into by lava/aqua."""
@@ -63,7 +63,7 @@ class Tile:
     
     def _is_flowable(self) -> bool:
         """Determine if current tile type is walkable."""
-        return self._tile_type in [TileType.EMPTY, TileType.Key, TileType.Semi_Wall]
+        return self._tile_type in [TileType.EMPTY, TileType.Semi_Wall]
     
     def draw(self, surface: pygame.Surface, offset_x: int, offset_y: int,
              animation_time: float = 0.0) -> None:
@@ -84,8 +84,6 @@ class Tile:
             self._draw_wall(surface, rect)
         elif self._tile_type == TileType.EXIT:
             self._draw_exit(surface, rect, animation_time)
-        # elif self._tile_type == TileType.Key:
-        #     self._draw_key(surface, rect,pixel_x,pixel_y,animation_time)
         elif self._tile_type == TileType.Semi_Wall:
             self._draw_semi_wall(surface, rect)
         elif self._tile_type == TileType.Dark_Wall:
@@ -97,22 +95,6 @@ class Tile:
         """Draw empty tile."""
         pygame.draw.rect(surface, Color.EMPTY, rect)
         pygame.draw.rect(surface, Color.EMPTY_DARK, rect, 1)
-        
-    def _draw_key(self, surface: pygame.Surface, rect: pygame.Rect,pixel_x:int,pixel_y:int,animation_time: float) -> None:
-        """Draw key tile."""
-        center = (pixel_x + TILE_SIZE // 2, pixel_y + TILE_SIZE // 2)
-        radius = TILE_SIZE // 5 
-        
-        # Animate glow
-        glow = abs(math.sin(animation_time * 2)) * 0.3 + 0.7
-        
-        base_color = Color.EXIT
-        r = int(base_color[0] * glow)
-        g = int(base_color[1] * glow)
-        b = int(base_color[2] * glow)
-        
-        self._draw_empty(surface, rect)
-        pygame.draw.circle(surface, (r,g,b),center,radius)
     
     def _draw_wall(self, surface: pygame.Surface, rect: pygame.Rect) -> None:
         """Draw wall tile with 3D effect."""

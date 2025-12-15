@@ -3,6 +3,8 @@ from src.Lava_Aqua.app.game_app import GameApplication
 from src.Lava_Aqua.algorithms import BFSSolver
 from src.Lava_Aqua.algorithms.dfs_solver import DFSSolver
 from src.Lava_Aqua.algorithms.ucs_solver import UCSSolver
+from src.Lava_Aqua.algorithms.dijkstra_solver import DijkstraSolver
+from src.Lava_Aqua.algorithms.aStar_solver import AStarSolver
 from src.Lava_Aqua.agents.qlearning_agent import QLearningAgent
 from src.Lava_Aqua.core.constants import CONTROLLER_OPTIONS
 import pygame
@@ -46,6 +48,12 @@ def main():
 
     elif controller_choice == 3:
         app.run(solver=UCSSolver(), visualize=True)
+        
+    elif controller_choice == 4:
+        app.run(solver=DijkstraSolver(), visualize=True)
+        
+    elif controller_choice == 5:
+        app.run(solver=AStarSolver(), visualize=True)
 
     elif controller_choice == 4:
         agent = QLearningAgent()
