@@ -64,13 +64,13 @@ class SolverController(BaseController):
             self.current_move_index = 0
             self.solving_complete = False
             
-            # Update stats
-            self.solver.stats['time_taken'] =  solve_time #/60.0 if solve_time>60.0 else solve_time  # in minutes
-            self.solver.stats['solution_length'] = len(solution)
+            # # Update stats
+            # self.solver.stats['time_taken'] =  solve_time #/60.0 if solve_time>60.0 else solve_time  # in minutes
+            # self.solver.stats['solution_length'] = len(solution)
             
             print(f"Solution found: {len(solution)} moves in {solve_time:.3f}s")
             self.solver.print_stats()
-            self.solver.save_to_json(SOLUTIONS_DIR / f"{self.solver.name}{self.game_logic.get_level_number()}.json")
+            self.solver.save_to_json(SOLUTIONS_DIR /f"{self.solver.name}"/f"Level{self.game_logic.get_level_number()}.json")
             return True
         else:
             print(f"No solution found (searched for {solve_time:.3f}s)")

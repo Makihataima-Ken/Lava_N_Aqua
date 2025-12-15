@@ -42,6 +42,17 @@ def main_solver_ucs():
         visualize=True
     )
     
+def main_solver_dijkstra():
+    """Run game with Dijkstra solver."""
+    from src.Lava_Aqua.algorithms.dijkstra_solver import DijkstraSolver
+    app = GameApplication()
+    solver = DijkstraSolver()
+    app.run(
+        solver=solver,
+        move_delay=0.1,
+        visualize=True
+    )
+    
 # def main_solver_aStar():
 #     from src.Lava_Aqua.algorithms.aStar_solver import AStarSolver
 #     app = GameApplication()
@@ -83,7 +94,7 @@ def main():
     parser = argparse.ArgumentParser(description='Lava & Aqua Game')
     parser.add_argument(
         '--mode',
-        choices=['play', 'bfs', 'dfs', 'random','aStar','ucs','qlearning'],
+        choices=['play', 'bfs', 'dfs', 'random','aStar','ucs','qlearning','dijkstra'],
         default='play',
         help='Game mode'
     )
@@ -115,6 +126,8 @@ def main():
         main_solver_dfs()
     elif args.mode == 'ucs':
         main_solver_ucs()
+    elif args.mode == 'dijkstra':
+        main_solver_dijkstra()
     elif args.mode == 'qlearning':
         main_agent_train_qlearning()
     # elif args.mode == 'aStar':
