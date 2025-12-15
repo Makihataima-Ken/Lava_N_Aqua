@@ -17,7 +17,7 @@ class BFSSolver(BaseSolver):
     
     def solve(self, game_logic: GameLogic) -> Optional[List[Direction]]:
         
-        # start_time = time.time()
+        start_time = time.time()
         
         simulation = deepcopy(game_logic)        
         
@@ -25,8 +25,8 @@ class BFSSolver(BaseSolver):
         
         init_state = simulation.get_state()
        
-        # queue = deque([(init_state,PathNode(None))])
-        queue = deque([(init_state,[])])
+        queue = deque([(init_state,PathNode(None))])
+        # queue = deque([(init_state,[])])
        
         visited = set()
         visited.add(self._hash_state(init_state))
@@ -40,10 +40,15 @@ class BFSSolver(BaseSolver):
             # print(time.time()-start_time, f"BFS exploring node at depth {len(path)}, total explored: {self.stats['nodes_explored']}")
             
             # if simulation.is_level_completed():
-            #     return path.to_list()
+            #     self.stats['time_taken'] = time.time() - start_time
+            #     self.stats['solution_length'] = len(path)
+            #     return path
             
             if simulation.is_level_completed():
-                return path
+                path_list = path.to_list()
+                self.stats['time_taken'] = time.time() - start_time
+                self.stats['solution_length'] = len(path_list)
+                return path_list
             
             moves = simulation.allowed_moves()
             
@@ -62,8 +67,8 @@ class BFSSolver(BaseSolver):
                     continue
                 
                 visited.add(state_hash)
-                new_path = path + [move]
-                # new_path = PathNode(move,path)
+                # new_path = path + [move]
+                new_path = PathNode(move,path)
                 queue.append((new_state, new_path))
            
         return None

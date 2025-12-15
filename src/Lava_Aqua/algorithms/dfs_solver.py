@@ -13,7 +13,7 @@ class DFSSolver(BaseSolver):
         
     def solve(self, game_logic) -> Optional[List[Direction]]:
         
-        # start_time = time.time()
+        start_time = time.time()
         
         simulation = deepcopy(game_logic)
         
@@ -21,8 +21,8 @@ class DFSSolver(BaseSolver):
         
         initial_state = simulation.get_state()
         
-        # stack = [(initial_state, PathNode(val=None))]
-        stack = [(initial_state, [])]
+        stack = [(initial_state, PathNode(val=None))]
+        # stack = [(initial_state, [])]
         
         visited: Set[str] = set()
         visited.add(self._hash_state(initial_state))
@@ -39,10 +39,15 @@ class DFSSolver(BaseSolver):
             simulation.load_state(current_state)
 
             # if simulation.is_level_completed():
-            #     return path.to_list()
+            #     self.stats['time_taken'] = time.time() - start_time
+            #     self.stats['solution_length'] = len(path)
+            #     return path
             
             if simulation.is_level_completed():
-                return path
+                path_list = path.to_list()
+                self.stats['time_taken'] = time.time() - start_time
+                self.stats['solution_length'] = len(path_list)
+                return path_list
 
             moves = simulation.allowed_moves()
             
@@ -62,8 +67,8 @@ class DFSSolver(BaseSolver):
                     continue
                 
                 visited.add(state_hash)
-                new_path = path + [move]
-                # new_path = PathNode(val=move,parent=path)
+                # new_path = path + [move]
+                new_path = PathNode(val=move,parent=path)
                 stack.append((new_state, new_path))
                 
         return None
