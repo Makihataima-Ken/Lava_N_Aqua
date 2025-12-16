@@ -83,7 +83,7 @@ class RLController(BaseController):
                     f"Reward: {avg_reward:.2f} | "
                     f"Steps: {avg_length:.1f} | "
                     f"ε: {self.agent.epsilon:.4f} | "
-                    f"States: {self.agent.stats['unique_states']}"
+                    # f"States: {self.agent.stats['unique_states']}"
                 )
             
             # Evaluation

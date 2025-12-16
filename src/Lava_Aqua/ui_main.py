@@ -6,6 +6,7 @@ from src.Lava_Aqua.algorithms.ucs_solver import UCSSolver
 from src.Lava_Aqua.algorithms.dijkstra_solver import DijkstraSolver
 from src.Lava_Aqua.algorithms.aStar_solver import AStarSolver
 from src.Lava_Aqua.agents.qlearning_agent import QLearningAgent
+from src.Lava_Aqua.agents.dqn_agent import DQNAgent
 from src.Lava_Aqua.core.constants import CONTROLLER_OPTIONS
 import pygame
 
@@ -55,8 +56,14 @@ def main():
     elif controller_choice == 5:
         app.run(solver=AStarSolver(), visualize=True)
 
-    elif controller_choice == 4:
+    elif controller_choice == 6:
         agent = QLearningAgent()
+        app.run(agent=agent, visualize=False)
+        
+    elif controller_choice == 7:
+        height, width = app.game_logic.get_grid_dimensions()
+        state_shape = (height, width, 6)
+        agent = DQNAgent(state_shape=state_shape)
         app.run(agent=agent, visualize=False)
 
 if __name__ == "__main__":
