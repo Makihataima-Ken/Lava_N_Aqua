@@ -101,6 +101,7 @@ CONTROLLER_OPTIONS = [
     "UCS",
     "Dijkstra",
     "A*",
-    "Q-Learning",
-    "DQN"
+    "Hill Climbing"
+    # "Q-Learning",
+    # "DQN"
 ]

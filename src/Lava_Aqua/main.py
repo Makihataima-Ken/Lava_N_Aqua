@@ -62,6 +62,16 @@ def main_solver_aStar():
         move_delay=0.1,
         visualize=True
     )
+    
+def main_solver_hill_climbing():
+    from src.Lava_Aqua.algorithms.hill_climbing import HillClimbingSolver
+    app = GameApplication()
+    solver = HillClimbingSolver()
+    app.run(
+        solver=solver,
+        move_delay=0.1,
+        visualize=True
+    )
 
 def main_agent_train_qlearning():
     """Train Q-Learning agent."""
@@ -117,7 +127,7 @@ def main():
     parser = argparse.ArgumentParser(description='Lava & Aqua Game')
     parser.add_argument(
         '--mode',
-        choices=['play', 'bfs', 'dfs', 'random','aStar','ucs','qlearning','dijkstra','dqn'],
+        choices=['play', 'bfs', 'dfs', 'random','aStar','ucs','qlearning','dijkstra','dqn','hc'],
         default='play',
         help='Game mode'
     )
@@ -157,6 +167,8 @@ def main():
         main_solver_aStar()
     elif args.mode == 'dqn':
         main_agent_train_DQN()
+    elif args.mode =='hc':
+        main_solver_hill_climbing()
 
 
 if __name__ == "__main__":

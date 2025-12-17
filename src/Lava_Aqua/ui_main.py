@@ -1,3 +1,4 @@
+from src.Lava_Aqua.algorithms.hill_climbing import HillClimbingSolver
 from src.Lava_Aqua.graphics.menu import Menu
 from src.Lava_Aqua.app.game_app import GameApplication
 from src.Lava_Aqua.algorithms import BFSSolver
@@ -55,16 +56,19 @@ def main():
         
     elif controller_choice == 5:
         app.run(solver=AStarSolver(), visualize=True)
-
-    elif controller_choice == 6:
-        agent = QLearningAgent()
-        app.run(agent=agent, visualize=False)
         
-    elif controller_choice == 7:
-        height, width = app.game_logic.get_grid_dimensions()
-        state_shape = (height, width, 6)
-        agent = DQNAgent(state_shape=state_shape)
-        app.run(agent=agent, visualize=False)
+    elif controller_choice == 6:
+         app.run(solver=HillClimbingSolver(), visualize=True)
+
+    # elif controller_choice == 7:
+    #     agent = QLearningAgent()
+    #     app.run(agent=agent, visualize=False)
+        
+    # elif controller_choice == 8:
+    #     height, width = app.game_logic.get_grid_dimensions()
+    #     state_shape = (height, width, 6)
+    #     agent = DQNAgent(state_shape=state_shape)
+    #     app.run(agent=agent, visualize=False)
 
 if __name__ == "__main__":
     main()
