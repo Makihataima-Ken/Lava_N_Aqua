@@ -12,15 +12,7 @@ class HillClimbingSolver(BaseSolver):
     """Hill Climbing Search solver implementation."""
     def __init__(self):
         super().__init__(name="Hill Climbing")
-        
-    def _heuristic(self, state, exit_pos) ->int:
-        """
-        Heuristic function for A*. 
-        Calculates the Manhattan distance from the player's position to the exit.
-        """
-        player_pos = state.player_pos
-        return self._manhattan_distance(player_pos, exit_pos)
-    
+            
     def solve(self, game_logic) -> Optional[List[Direction]]:
         
         start_time = time.time()
@@ -51,8 +43,7 @@ class HillClimbingSolver(BaseSolver):
                 self.stats['solution_length'] = len(path_list)
                 return path_list
             
-            if current_h > int(best_cost.get(self._hash_state(current_state))):
-                print("smth")
+            if current_h > best_cost.get(self._hash_state(current_state),float("inf")):
                 continue
             
             moves = simulation.allowed_moves()
@@ -70,8 +61,7 @@ class HillClimbingSolver(BaseSolver):
                 state_hash = self._hash_state(new_state)
                 
                 new_h = self._heuristic(new_state,exit_pos)
-                
-                # if  new_h < best_cost.get(self._hash_state(current_state),float("inf")):
+    
                 best_cost[state_hash] = new_h
                     
                 new_path = PathNode(val=move, parent=path)

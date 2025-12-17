@@ -136,6 +136,56 @@ class BaseSolver(ABC):
             
             return Renderer(screen_width, screen_height, caption)    
         
+    # heruestics 
+    
+    def _heuristic(self, state, exit_pos) ->int:
+        """
+        Heuristic function for A*. 
+        Calculates the Manhattan distance from the player's position to the exit.
+        """
+        player_pos = state.player_pos
+        return self._manhattan_distance(player_pos, exit_pos)
+    
+    def _heuristic_keys(self, state: GameState, exit_pos: tuple, all_key_positions: List[tuple]) -> int:
+        """
+        Heuristic function (h(n)).
+
+        - If all keys are collected, the heuristic is the Manhattan distance from the player to the exit.
+        - If keys remain, it's an admissible estimate composed of two parts:
+          1. The distance from the player to the NEAREST uncollected key.
+          2. The distance from the uncollected key NEAREST to the exit, to the exit itself.
+        
+        This guides the search toward keys first and is more effective than a simple player-to-exit heuristic.
+        """
+        player_pos = state.player_pos
+
+        # Identify the positions of keys that have not been collected yet
+        uncollected_key_pos = [
+            key_pos for i, key_pos in enumerate(all_key_positions) 
+            if i not in state.collected_key_indices
+        ]
+
+        # CASE 1: All keys are collected (or level has no keys).
+        # The goal is simply to get to the exit.
+        if not uncollected_key_pos:
+            return self._manhattan_distance(player_pos, exit_pos)
+
+        # CASE 2: There are still keys to collect.
+        # The path must go from the player to the keys, and from the keys to the exit.
+
+        # Part 1: Minimum distance from the player to any of the remaining keys.
+        # The player must travel at least this far to get the first key.
+        dist_to_closest_key = min(self._manhattan_distance(player_pos, key_pos) for key_pos in uncollected_key_pos)
+        
+        # Part 2: Minimum distance from any remaining key to the exit.
+        # After collecting all keys, the player must travel from the last key to the exit.
+        # This is a lower bound on that final leg of the journey.
+        dist_from_keys_to_exit = min(self._manhattan_distance(key_pos, exit_pos) for key_pos in uncollected_key_pos)
+
+        # The final heuristic is the sum of these two admissible parts.
+        # It underestimates the total cost because it doesn't include the travel between keys.
+        return dist_to_closest_key + dist_from_keys_to_exit
+        
 @dataclass
 class PathNode:
     val: Direction
