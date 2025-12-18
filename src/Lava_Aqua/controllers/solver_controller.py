@@ -49,6 +49,7 @@ class SolverController(BaseController):
         # Run solver
         start_time = time.time()
         solution = self.solver.solve(self.game_logic,self.visualize)
+        # solution = self.solver.solve(self.game_logic)
         solve_time = time.time() - start_time
         
         current, peak = tracemalloc.get_traced_memory()

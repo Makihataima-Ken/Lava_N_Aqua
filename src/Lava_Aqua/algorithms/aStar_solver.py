@@ -39,12 +39,13 @@ class AStarSolver(BaseSolver):
         if visualize:
             renderer = self._setup_renderer(simulation=simulation)
         
-        init_h = self._heuristic_keys(init_state, exit_pos,all_key_positions)
+        # init_h = self._heuristic_keys(init_state, exit_pos,all_key_positions)
+        init_h = self._heuristic_box_lava_priority(init_state, exit_pos,all_key_positions)
         
         p_queue = [(init_h, 0, init_state, PathNode(val=None))]
         heapq.heapify(p_queue)
 
-        best_cost = {self._hash_state(init_state):init_h}
+        best_cost = {self._hash_state(init_state):0}
         
         self.stats['nodes_generated'] = 1
 
@@ -75,17 +76,16 @@ class AStarSolver(BaseSolver):
                     continue
                 
                 self.stats['nodes_generated'] += 1
-
-                step_cost = new_state.moves - current_state.moves
                 
-                new_cost = current_cost + step_cost
+                new_cost = current_cost + 1
                 
                 state_hash = self._hash_state(new_state)
 
                 if new_cost < best_cost.get(state_hash, float("inf")):
                     best_cost[state_hash] = new_cost
                     
-                    new_h = self._heuristic_keys(new_state, exit_pos,all_key_positions)
+                    # new_h = self._heuristic_keys(new_state, exit_pos,all_key_positions)
+                    new_h = self._heuristic_box_lava_priority(new_state, exit_pos,all_key_positions)
 
                     priority = new_cost + new_h
                     

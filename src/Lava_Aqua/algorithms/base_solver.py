@@ -165,27 +165,64 @@ class BaseSolver(ABC):
             if i not in state.collected_key_indices
         ]
 
-        # CASE 1: All keys are collected (or level has no keys).
-        # The goal is simply to get to the exit.
         if not uncollected_key_pos:
             return self._manhattan_distance(player_pos, exit_pos)
 
-        # CASE 2: There are still keys to collect.
-        # The path must go from the player to the keys, and from the keys to the exit.
-
-        # Part 1: Minimum distance from the player to any of the remaining keys.
-        # The player must travel at least this far to get the first key.
         dist_to_closest_key = min(self._manhattan_distance(player_pos, key_pos) for key_pos in uncollected_key_pos)
         
-        # Part 2: Minimum distance from any remaining key to the exit.
-        # After collecting all keys, the player must travel from the last key to the exit.
-        # This is a lower bound on that final leg of the journey.
         dist_from_keys_to_exit = min(self._manhattan_distance(key_pos, exit_pos) for key_pos in uncollected_key_pos)
 
-        # The final heuristic is the sum of these two admissible parts.
-        # It underestimates the total cost because it doesn't include the travel between keys.
         return dist_to_closest_key + dist_from_keys_to_exit
         
+    def _heuristic_box_lava_priority(self,state,  exit_pos: tuple, all_key_positions: List[tuple]):
+        """
+        Calculates the heuristic value for a given game state.
+
+        The heuristic prioritizes:
+        1. Pushing boxes into lava.
+        2. Collecting keys.
+        3. Reaching the exit.
+        """
+        player_pos = state.player_pos
+        boxes = state.box_positions
+        lava_pits = state.lava_positions
+        keys = all_key_positions
+
+        # Manhattan distance helper function
+        def manhattan_distance(pos1, pos2):
+            return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
+
+        # --- 1. Pushing Boxes into Lava ---
+        if boxes:
+            min_box_to_lava_dist = float('inf')
+
+            # Find the minimum distance to push any box to any lava pit
+            for box in boxes:
+                # Heuristic for player to get to the "pushing" side of the box
+                # This is a simplification; a more advanced heuristic would find the optimal pushing spot
+                player_to_box_dist = manhattan_distance(player_pos, box)
+
+                # Find the closest lava pit for the current box
+                closest_lava_dist = min(manhattan_distance(box, lava) for lava in lava_pits)
+                
+                total_dist = player_to_box_dist + closest_lava_dist
+                if total_dist < min_box_to_lava_dist:
+                    min_box_to_lava_dist = total_dist
+            
+            # Add a large constant to prioritize this over key collection and exiting
+            return min_box_to_lava_dist + 1000  # The constant ensures this is the highest priority
+
+        # --- 2. Collecting Keys ---
+        if keys:
+            # If all boxes are gone, focus on the nearest key
+            min_key_dist = min(manhattan_distance(player_pos, key) for key in keys)
+            
+            # Add a smaller constant to prioritize this over exiting
+            return min_key_dist + 500 # This constant should be smaller than the box priority
+
+        # --- 3. Reaching the Exit ---
+        # If all boxes are pushed and all keys are collected
+        return manhattan_distance(player_pos, exit_pos)
 @dataclass
 class PathNode:
     val: Direction
