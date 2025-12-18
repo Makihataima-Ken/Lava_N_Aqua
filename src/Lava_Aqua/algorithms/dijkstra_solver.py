@@ -55,9 +55,8 @@ class DijkstraSolver(BaseSolver):
             
             for move in moves:
                 new_state = simulation.simulate_move(move)
-
-                # renderer.draw_game(simulation, animation_time=0.1)
-                # renderer.draw_solver_step(simulation, animation_time=0.1)
+                
+                # renderer.draw_solver_step(simulation)
                 
                 if new_state is None:
                     continue

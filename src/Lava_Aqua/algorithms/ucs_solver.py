@@ -19,7 +19,7 @@ class UCSSolver(BaseSolver):
         
         simulation = deepcopy(game_logic)
         
-        # renderer = self._setup_renderer(simulation=simulation)
+        renderer = self._setup_renderer(simulation=simulation)
         
         init_state = simulation.get_state()
         
@@ -54,7 +54,7 @@ class UCSSolver(BaseSolver):
                 new_state = simulation.simulate_move(move)
 
                 # renderer.draw_game(simulation, animation_time=0.1)
-                # renderer.draw_solver_step(simulation, animation_time=0.1)
+                renderer.draw_solver_step(simulation)
                 
                 if new_state is None:
                     continue

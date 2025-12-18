@@ -21,15 +21,19 @@ class HillClimbingSolver(BaseSolver):
         
         exit_pos = simulation.get_exit_position()
         
+        all_key_positions = simulation.get_key_positions()
+        
         renderer = self._setup_renderer(simulation=simulation)
         
         init_state = simulation.get_state()
         
-        p_queue = [(self._heuristic(init_state, exit_pos),init_state, PathNode(val=None))]
+        # init_h =self._heuristic(init_state, exit_pos)
+        init_h =self._heuristic_keys(init_state, exit_pos,all_key_positions)
+        p_queue = [(init_h,init_state, PathNode(val=None))]
         
         heapq.heapify(p_queue)
         
-        best_cost = {self._hash_state(init_state): self._heuristic(init_state, exit_pos)}
+        best_cost = {self._hash_state(init_state): init_h}
         
         while p_queue:
             current_h,current_state, path = heapq.heappop(p_queue)
@@ -60,7 +64,8 @@ class HillClimbingSolver(BaseSolver):
                 
                 state_hash = self._hash_state(new_state)
                 
-                new_h = self._heuristic(new_state,exit_pos)
+                # new_h = self._heuristic(new_state,exit_pos)
+                new_h = self._heuristic_keys(new_state, exit_pos,all_key_positions)
     
                 best_cost[state_hash] = new_h
                     

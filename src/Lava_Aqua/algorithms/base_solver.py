@@ -198,3 +198,6 @@ class PathNode:
             path_list.append(buff.val)
             buff = buff.parent
         return path_list[::-1]
+    
+    def __lt__(self,other):
+        return self.val.value <other.val.value

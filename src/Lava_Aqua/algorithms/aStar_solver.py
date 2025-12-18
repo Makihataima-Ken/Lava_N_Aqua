@@ -3,7 +3,7 @@ import time
 import heapq
 from typing import List, Optional
 
-from src.Lava_Aqua.core.game import GameLogic, GameState
+from src.Lava_Aqua.core.game import GameLogic
 from src.Lava_Aqua.core.constants import Direction
 from src.Lava_Aqua.algorithms.base_solver import BaseSolver, PathNode
 
@@ -57,7 +57,7 @@ class AStarSolver(BaseSolver):
                 self.stats['solution_length'] = len(path_list)
                 return path_list
 
-            if current_cost > best_cost.get(self._hash_state(current_state)):
+            if current_cost > best_cost.get(self._hash_state(current_state), float("inf")):
                 continue
             
             moves = simulation.allowed_moves()
@@ -72,27 +72,22 @@ class AStarSolver(BaseSolver):
                 
                 self.stats['nodes_generated'] += 1
 
-                # g(n): Cost from the start to the new state
                 step_cost = new_state.moves - current_state.moves
                 
                 new_cost = current_cost + step_cost
                 
                 state_hash = self._hash_state(new_state)
 
-                # If this is a better path to this state, update and push to the queue
                 if new_cost < best_cost.get(state_hash, float("inf")):
                     best_cost[state_hash] = new_cost
                     
-                    # h(n): Heuristic cost from the new state to the goal
                     heuristic_cost = self._heuristic_keys(new_state, exit_pos,all_key_positions)
-                    
-                    # f(n) = g(n) + h(n)
+
                     priority = new_cost + heuristic_cost
                     
                     new_path = PathNode(val=move, parent=path)
                     heapq.heappush(p_queue, (priority, new_cost, new_state, new_path))
         
-        # No solution found
         self.stats['time_taken'] = time.time() - start_time
         return None
 
