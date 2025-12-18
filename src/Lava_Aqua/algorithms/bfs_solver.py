@@ -15,13 +15,14 @@ class BFSSolver(BaseSolver):
     def __init__(self):
         super().__init__(name="BFS")
     
-    def solve(self, game_logic: GameLogic) -> Optional[List[Direction]]:
+    def solve(self, game_logic: GameLogic,visualize:bool = False) -> Optional[List[Direction]]:
         
         start_time = time.time()
         
         simulation = deepcopy(game_logic)        
         
-        # renderer = self._setup_renderer(simulation=simulation)
+        if visualize:
+            renderer = self._setup_renderer(simulation=simulation)
         
         init_state = simulation.get_state()
        
@@ -55,7 +56,8 @@ class BFSSolver(BaseSolver):
             for move in moves:
                 new_state = simulation.simulate_move(move)
                 
-                # renderer.draw_solver_step(simulation)
+                if visualize:
+                    renderer.draw_solver_step(simulation)
 
                 if new_state is None:
                     continue

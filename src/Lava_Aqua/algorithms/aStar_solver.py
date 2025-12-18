@@ -18,7 +18,7 @@ class AStarSolver(BaseSolver):
         """
         super().__init__(name="A Star")
 
-    def solve(self, game_logic: GameLogic) -> Optional[List[Direction]]:
+    def solve(self, game_logic: GameLogic,visualize:bool = False) -> Optional[List[Direction]]:
         """
         Solves the puzzle using A* search.
 
@@ -31,17 +31,20 @@ class AStarSolver(BaseSolver):
         start_time = time.time()
 
         simulation = deepcopy(game_logic)
-        initial_state = simulation.get_state()
+        init_state = simulation.get_state()
         
         exit_pos = simulation.get_exit_position()
         all_key_positions = simulation.get_key_positions()
         
-        renderer = self._setup_renderer(simulation=simulation)
+        if visualize:
+            renderer = self._setup_renderer(simulation=simulation)
         
-        p_queue = [(self._heuristic_keys(initial_state, exit_pos,all_key_positions), 0, initial_state, PathNode(val=None))]
+        init_h = self._heuristic_keys(init_state, exit_pos,all_key_positions)
+        
+        p_queue = [(init_h, 0, init_state, PathNode(val=None))]
         heapq.heapify(p_queue)
 
-        best_cost = {self._hash_state(initial_state):self._heuristic_keys(initial_state, exit_pos,all_key_positions)}
+        best_cost = {self._hash_state(init_state):init_h}
         
         self.stats['nodes_generated'] = 1
 
@@ -65,7 +68,8 @@ class AStarSolver(BaseSolver):
             for move in moves:
                 new_state = simulation.simulate_move(move)
                 
-                renderer.draw_solver_step(simulation)
+                if visualize:
+                    renderer.draw_solver_step(simulation)
 
                 if new_state is None:
                     continue
@@ -81,9 +85,9 @@ class AStarSolver(BaseSolver):
                 if new_cost < best_cost.get(state_hash, float("inf")):
                     best_cost[state_hash] = new_cost
                     
-                    heuristic_cost = self._heuristic_keys(new_state, exit_pos,all_key_positions)
+                    new_h = self._heuristic_keys(new_state, exit_pos,all_key_positions)
 
-                    priority = new_cost + heuristic_cost
+                    priority = new_cost + new_h
                     
                     new_path = PathNode(val=move, parent=path)
                     heapq.heappush(p_queue, (priority, new_cost, new_state, new_path))

@@ -1,6 +1,7 @@
 import time
 from typing import Dict, List, Optional, Set, Tuple
 from copy import deepcopy
+from src.Lava_Aqua.core.game import GameLogic
 from src.Lava_Aqua.graphics.renderer import Renderer
 from src.Lava_Aqua.algorithms.base_solver import BaseSolver, PathNode
 from src.Lava_Aqua.core.constants import Direction
@@ -13,13 +14,14 @@ class DijkstraSolver(BaseSolver):
     def __init__(self):
         super().__init__(name="Dijkstra")
     
-    def solve(self, game_logic) -> Optional[List[Direction]]:
+    def solve(self, game_logic: GameLogic,visualize:bool = False) -> Optional[List[Direction]]:
         
         start_time = time.time()
         
         simulation = deepcopy(game_logic)
         
-        # renderer = self._setup_renderer(simulation=simulation)
+        if visualize:
+            renderer = self._setup_renderer(simulation=simulation)
         
         init_state = simulation.get_state()
         
@@ -56,7 +58,8 @@ class DijkstraSolver(BaseSolver):
             for move in moves:
                 new_state = simulation.simulate_move(move)
                 
-                # renderer.draw_solver_step(simulation)
+                if visualize:
+                    renderer.draw_solver_step(simulation)
                 
                 if new_state is None:
                     continue
@@ -64,9 +67,6 @@ class DijkstraSolver(BaseSolver):
                 self.stats['nodes_generated'] += 1
                 
                 step_cost = new_state.moves - current_state.moves
-                
-                if step_cost <= 0:
-                    step_cost = 1  # safety fallback
 
                 new_cost = current_cost + step_cost
                 

@@ -25,7 +25,7 @@ class BaseSolver(ABC):
         }
     
     @abstractmethod
-    def solve(self, game_logic: GameLogic) -> Optional[List[Direction]]:
+    def solve(self, game_logic: GameLogic,visualize:bool = False) -> Optional[List[Direction]]:
         """Solve the current level.
         
         Args:

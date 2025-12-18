@@ -1,6 +1,7 @@
 import time
 from typing import List, Optional, Set
 from copy import deepcopy
+from src.Lava_Aqua.core.game import GameLogic
 from src.Lava_Aqua.graphics.renderer import Renderer
 from src.Lava_Aqua.algorithms.base_solver import BaseSolver , PathNode
 from src.Lava_Aqua.core.constants import Direction
@@ -11,13 +12,14 @@ class DFSSolver(BaseSolver):
         super().__init__(name="DFS")
         self.max_depth = 35
         
-    def solve(self, game_logic) -> Optional[List[Direction]]:
+    def solve(self, game_logic: GameLogic,visualize:bool = False) -> Optional[List[Direction]]:
         
         start_time = time.time()
         
         simulation = deepcopy(game_logic)
         
-        # renderer = self._setup_renderer(simulation=simulation)
+        if visualize:
+            renderer = self._setup_renderer(simulation=simulation)
         
         initial_state = simulation.get_state()
         
@@ -55,7 +57,8 @@ class DFSSolver(BaseSolver):
 
                 new_state = simulation.simulate_move(move)
                 
-                # renderer.draw_solver_step(simulation)
+                if visualize:
+                    renderer.draw_solver_step(simulation)
                 
                 if new_state is None:
                     continue

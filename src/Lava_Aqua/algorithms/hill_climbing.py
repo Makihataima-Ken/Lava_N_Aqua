@@ -1,6 +1,7 @@
 import time
 from typing import Dict, List, Optional, Set, Tuple
 from copy import deepcopy
+from src.Lava_Aqua.core.game import GameLogic
 from src.Lava_Aqua.graphics.renderer import Renderer
 from src.Lava_Aqua.algorithms.base_solver import BaseSolver, PathNode
 from src.Lava_Aqua.core.constants import Direction
@@ -13,7 +14,7 @@ class HillClimbingSolver(BaseSolver):
     def __init__(self):
         super().__init__(name="Hill Climbing")
             
-    def solve(self, game_logic) -> Optional[List[Direction]]:
+    def solve(self, game_logic: GameLogic,visualize:bool = False) -> Optional[List[Direction]]:
         
         start_time = time.time()
         
@@ -23,7 +24,8 @@ class HillClimbingSolver(BaseSolver):
         
         all_key_positions = simulation.get_key_positions()
         
-        renderer = self._setup_renderer(simulation=simulation)
+        if visualize:
+            renderer = self._setup_renderer(simulation=simulation)
         
         init_state = simulation.get_state()
         
@@ -55,7 +57,8 @@ class HillClimbingSolver(BaseSolver):
             for move in moves:
                 new_state = simulation.simulate_move(move)
 
-                renderer.draw_solver_step(simulation)
+                if visualize:
+                    renderer.draw_solver_step(simulation)
                 
                 if new_state is None:
                     continue

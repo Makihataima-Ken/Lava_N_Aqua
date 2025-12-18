@@ -48,7 +48,7 @@ class SolverController(BaseController):
         
         # Run solver
         start_time = time.time()
-        solution = self.solver.solve(self.game_logic)
+        solution = self.solver.solve(self.game_logic,self.visualize)
         solve_time = time.time() - start_time
         
         current, peak = tracemalloc.get_traced_memory()
@@ -63,10 +63,6 @@ class SolverController(BaseController):
             self.solution_moves = solution
             self.current_move_index = 0
             self.solving_complete = False
-            
-            # # Update stats
-            # self.solver.stats['time_taken'] =  solve_time #/60.0 if solve_time>60.0 else solve_time  # in minutes
-            # self.solver.stats['solution_length'] = len(solution)
             
             print(f"Solution found: {len(solution)} moves in {solve_time:.3f}s")
             self.solver.print_stats()
@@ -131,8 +127,8 @@ class SolverController(BaseController):
                     self._display_failed_state()
                     return GameResult.QUIT
                 
-                if self.visualize:
-                    time.sleep(self.move_delay)
+                # if self.visualize:
+                time.sleep(self.move_delay)
             
             if self.game_logic.game_over:
                 print("Solution led to game over!")
@@ -142,8 +138,8 @@ class SolverController(BaseController):
             if self.game_logic.level_complete:
                 return self.handle_victory_state()
             
-            if self.visualize:
-                self.render_frame()
+            # if self.visualize:
+            self.render_frame()
         
         if self.solving_complete and not self.game_logic.level_complete:
             print("Solution executed but level not completed!")
