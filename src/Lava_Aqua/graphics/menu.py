@@ -1,138 +1,143 @@
 import pygame
-import math
-import random
-from typing import List
-from src.Lava_Aqua.core.constants import Color
+from typing import List, Callable, Tuple
+
+class MenuItem:
+    """Represents a single item in the menu."""
+    def __init__(self, text: str, on_select: Callable[[], None], description: str = ""):
+        self.text = text
+        self.on_select = on_select
+        self.description = description
 
 class Menu:
-    def __init__(self, screen, title: str, options: List[str]):
+    """A reusable, scalable, and animated menu for Pygame."""
+    def __init__(self, screen, title: str, items: List[MenuItem], config: dict = None):
         self.screen = screen
         self.title = title
-        self.options = options
-        self.selected = 0
-        self.hover_animation = [0] * len(options)
+        self.items = items
+        self.selected_index = 0
+        self.config = self._get_default_config()
+        if config:
+            self.config.update(config)
+        
+        # Animations
+        self.hover_animations = [0.0] * len(items)
         
         # Fonts
-        self.font = pygame.font.Font(None, 52)
-        self.option_font = pygame.font.Font(None, 32)
-        self.subtitle_font = pygame.font.Font(None, 22)
-        
-        # Calculate grid layout
-        self.cols = min(5, len(options))
-        self.rows = (len(options) + self.cols - 1) // self.cols
+        self.font_title = pygame.font.Font(None, self.config['font_size_title'])
+        self.font_item = pygame.font.Font(None, self.config['font_size_item'])
+        self.font_subtitle = pygame.font.Font(None, self.config['font_size_subtitle'])
+
+        self._calculate_layout()
+
+    def _get_default_config(self) -> dict:
+        """Provides a default configuration for the menu's appearance."""
+        return {
+            'font_size_title': 74,
+            'font_size_item': 42,
+            'font_size_subtitle': 22,
+            'color_bg': (10, 10, 20),
+            'color_title': (255, 255, 255),
+            'color_item': (200, 200, 220),
+            'color_selected': (255, 100, 100),
+            'color_border': (50, 50, 80),
+            'padding': 50,
+            'item_spacing': 20,
+            'max_cols': 4,
+        }
+
+    def _calculate_layout(self):
+        """Calculates the grid layout for the menu items."""
+        self.cols = min(self.config['max_cols'], len(self.items))
+        self.rows = (len(self.items) + self.cols - 1) // self.cols
 
     def _draw_background(self):
-        """Draw solid dark background"""
-        self.screen.fill(Color.BLACK)
+        self.screen.fill(self.config['color_bg'])
 
     def _draw_title(self):
-        """Draw title"""
-        title_surf = self.font.render(self.title, True, Color.WHITE)
-        title_rect = title_surf.get_rect(center=(400, 50))
+        """Renders the main title and subtitle."""
+        # Title
+        title_surf = self.font_title.render(self.title, True, self.config['color_title'])
+        title_rect = title_surf.get_rect(center=(self.screen.get_width() / 2, 80))
         self.screen.blit(title_surf, title_rect)
         
         # Subtitle
-        subtitle = "Navigate with Arrow Keys • Select with Enter"
-        subtitle_surf = self.subtitle_font.render(subtitle, True, (140, 140, 140))
-        subtitle_rect = subtitle_surf.get_rect(center=(400, 90))
+        subtitle_text = "Navigate with Arrow Keys • Select with Enter"
+        subtitle_surf = self.font_subtitle.render(subtitle_text, True, self.config['color_item'])
+        subtitle_rect = subtitle_surf.get_rect(center=(self.screen.get_width() / 2, 130))
         self.screen.blit(subtitle_surf, subtitle_rect)
 
-    def _draw_box(self, index: int, option: str, x: int, y: int, width: int, height: int):
-        """Draw individual box with hollow border on hover"""
-        is_selected = index == self.selected
+    def _draw_items(self):
+        """Draws all menu items in a grid."""
+        padding = self.config['padding']
+        spacing = self.config['item_spacing']
         
-        # Smooth hover animation
-        target_hover = 1.0 if is_selected else 0.0
-        self.hover_animation[index] += (target_hover - self.hover_animation[index]) * 0.2
-        hover = self.hover_animation[index]
+        start_y = 200
+        available_width = self.screen.get_width() - 2 * padding
         
-        # Box background (solid grey)
-        pygame.draw.rect(self.screen, Color.DARK_GRAY , (x, y, width, height))
+        box_width = (available_width - (self.cols - 1) * spacing) / self.cols
+        box_height = 80
         
-        # Hollow border when hovering
-        if hover > 0.01:
-            # Alternate between red and blue based on position
-            if index % 2 == 0:
-                glow_color = tuple(int(Color.RED[i] * hover) for i in range(3))
-            else:
-                glow_color = tuple(int(Color.BLUE[i] * hover) for i in range(3))
-            
-            border_width = int(3 * hover) + 1
-            pygame.draw.rect(self.screen, glow_color, (x, y, width, height), border_width)
-        else:
-            # Subtle border when not selected
-            pygame.draw.rect(self.screen, (60, 60, 60), (x, y, width, height), 1)
-        
-        # Text
-        text_surf = self.option_font.render(option, True, Color.WHITE)
-        text_rect = text_surf.get_rect(center=(x + width // 2, y + height // 2))
-        self.screen.blit(text_surf, text_rect)
+        start_x = padding
 
-    def _draw_boxes(self):
-        """Draw all boxes in a grid layout"""
-        # Calculate dimensions to fit screen
-        padding = 50
-        spacing = 15
-        available_width = 800 - (2 * padding)
-        available_height = 600 - 140 - padding
-        
-        # Calculate box dimensions
-        box_width = (available_width - (self.cols - 1) * spacing) // self.cols
-        box_height = (available_height - (self.rows - 1) * spacing) // self.rows
-        
-        # Ensure minimum size
-        box_width = max(box_width, 100)
-        box_height = max(box_height, 60)
-        
-        # Center the grid
-        total_width = self.cols * box_width + (self.cols - 1) * spacing
-        total_height = self.rows * box_height + (self.rows - 1) * spacing
-        start_x = (800 - total_width) // 2
-        start_y = 140
-        
-        # Draw each box
-        for i, option in enumerate(self.options):
+        for i, item in enumerate(self.items):
             col = i % self.cols
             row = i // self.cols
+            
             x = start_x + col * (box_width + spacing)
             y = start_y + row * (box_height + spacing)
-            self._draw_box(i, option, x, y, 130, 90)
+            
+            self._draw_item(i, item, x, y, box_width, box_height)
 
+    def _draw_item(self, index: int, item: MenuItem, x: int, y: int, width: int, height: int):
+        """Draws a single menu item with animations."""
+        is_selected = index == self.selected_index
+        
+        # Animation interpolation
+        target_anim = 1.0 if is_selected else 0.0
+        self.hover_animations[index] += (target_anim - self.hover_animations[index]) * 0.2
+        anim = self.hover_animations[index]
+        
+        # Box
+        rect = pygame.Rect(x, y, width, height)
+        border_color = tuple(int(self.config['color_border'][i] + (self.config['color_selected'][i] - self.config['color_border'][i]) * anim) for i in range(3))
+        pygame.draw.rect(self.screen, self.config['color_bg'], rect)
+        pygame.draw.rect(self.screen, border_color, rect, int(2 + anim * 3))
+        
+        # Text
+        text_color = tuple(int(self.config['color_item'][i] + (self.config['color_title'][i] - self.config['color_item'][i]) * anim) for i in range(3))
+        text_surf = self.font_item.render(item.text, True, text_color)
+        text_rect = text_surf.get_rect(center=rect.center)
+        self.screen.blit(text_surf, text_rect)
+        
     def draw(self):
-        """Main draw method"""
+        """Main drawing method, called every frame."""
         self._draw_background()
         self._draw_title()
-        self._draw_boxes()
+        self._draw_items()
         pygame.display.flip()
 
-    def run(self) -> int:
-        """Returns index of selected option"""
+    def run(self):
+        """Runs the menu loop and handles events."""
         clock = pygame.time.Clock()
-        
         while True:
-            self.draw()
-            
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     raise SystemExit
-                
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
-                        new_selected = self.selected - self.cols
-                        if new_selected >= 0:
-                            self.selected = new_selected
+                        self.selected_index = (self.selected_index - self.cols) % len(self.items)
                     elif event.key == pygame.K_DOWN:
-                        new_selected = self.selected + self.cols
-                        if new_selected < len(self.options):
-                            self.selected = new_selected
+                        self.selected_index = (self.selected_index + self.cols) % len(self.items)
                     elif event.key == pygame.K_LEFT:
-                        if self.selected % self.cols > 0:
-                            self.selected -= 1
+                        self.selected_index = (self.selected_index - 1) % len(self.items)
                     elif event.key == pygame.K_RIGHT:
-                        if self.selected % self.cols < self.cols - 1 and self.selected + 1 < len(self.options):
-                            self.selected += 1
+                        self.selected_index = (self.selected_index + 1) % len(self.items)
                     elif event.key == pygame.K_RETURN:
-                        return self.selected
-            
+                        selected_item = self.items[self.selected_index]
+                        selected_item.on_select() # Execute the callback
+                        return # Exit the menu
+
+            self.draw()
             clock.tick(60)
+

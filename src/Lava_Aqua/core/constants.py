@@ -92,16 +92,3 @@ class Action(Enum):
     RESET = 'reset'
     UNDO = 'undo'
     QUIT = 'quit'
-    
-    
-CONTROLLER_OPTIONS = [
-    "Player",
-    "BFS",
-    "DFS",
-    "UCS",
-    "Dijkstra",
-    "A*",
-    "Hill Climbing"
-    # "Q-Learning",
-    # "DQN"
-]
