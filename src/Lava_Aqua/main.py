@@ -127,7 +127,7 @@ def main():
     parser = argparse.ArgumentParser(description='Lava & Aqua Game')
     parser.add_argument(
         '--mode',
-        choices=['play', 'bfs', 'dfs', 'random','aStar','ucs','qlearning','dijkstra','dqn','hc'],
+        choices=['play', 'bfs', 'dfs', 'random','aStar','ucs','qlearning','dijkstra','dqn','hc','minimax'],
         default='play',
         help='Game mode'
     )

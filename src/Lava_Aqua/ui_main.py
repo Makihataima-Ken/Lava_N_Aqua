@@ -1,7 +1,4 @@
 import pygame
-import os
-from pathlib import Path
-from typing import Optional, Dict, Any
 from src.Lava_Aqua.graphics.menu import Menu, MenuItem
 from src.Lava_Aqua.app.game_app import GameApplication
 from src.Lava_Aqua.algorithms.bfs_solver import BFSSolver
@@ -155,7 +152,7 @@ def show_level_menu(
     # Add back button
     level_items.append(
         MenuItem(
-            text="← Back to Controller Selection",
+            text="Back",
             on_select=lambda: show_controller_menu(screen, app)
         )
     )

@@ -471,8 +471,7 @@ class GameLogic:
         
     def is_level_completed(self)->bool:
         return self.level_complete
-    
-    
+
     
     # -------------------------------------------------------
     # AI Specific helper functions
