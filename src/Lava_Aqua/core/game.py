@@ -478,6 +478,18 @@ class GameLogic:
         exit_pos = self.exit_pos
         return abs(player_pos[0] - exit_pos[0]) + abs(player_pos[1] - exit_pos[1])
     
+    def _manhattan_distance(self, pos1: Tuple[int, int], pos2: Tuple[int, int]) -> int:
+        """Calculate Manhattan distance between two positions.
+        
+        Args:
+            pos1: First position (x, y)
+            pos2: Second position (x, y)
+            
+        Returns:
+            Manhattan distance
+        """
+        return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
+    
     # -------------------------------------------------------
     # AI Specific helper functions
     # -------------------------------------------------------
@@ -525,63 +537,75 @@ class GameLogic:
         
         return observation
     
-    # def calculate_reward(self, move: bool, prev_distance: float, prev_state: GameState) -> float:
-    #     # WIN
-    #     if self.level_complete:
-    #         return +1000.0
-
-    #     # LOSE (make it worse than wandering)
-    #     if self.game_over:
-    #         return -500.0
-
-    #     # Invalid move
-    #     if not move:
-    #         return -50.0
-
-    #     # Step cost
-    #     reward = 1.0
-        
-    #     prev_lava = len(prev_state.lava_positions)
-    #     new_lava = len(self.lava.get_positions())
-        
-    #     reward += (new_lava - prev_lava)* 10.0
-        
-    #     # Progress reward
-    #     new_distance = self.get_manhattan_distance_to_exit()
-        
-    #     # Reward progress, penalize regress
-    #     reward += (prev_distance - new_distance) * 5.0
-
-    #     return reward
-    
-    def calculate_reward(self, move: bool, prev_distance: float) -> float:
-        # WIN
+    def calculate_reward(self, move_successful: bool, prev_state: GameState) -> float:
+        """
+        Calculates a comprehensive, event-driven reward for an RL agent.
+        """
+        # --- 1. Terminal State Rewards (Highest Priority) ---
         if self.level_complete:
-            return +1000.0
-
-        # LOSE (make it worse than wandering)
+            return 500.0  # Large reward for winning
         if self.game_over:
-            return -500.0
+            return -500.0 # Large penalty for losing
 
-        # Invalid move
-        if not move:
-            return -50.0
+        # Initialize reward for this step
+        reward = 0.0
 
-        # Step cost
-        reward = 1.0
+        # --- 2. Major Positive Events ---
+        keys_before = len(prev_state.collected_key_indices)
+        keys_now = len([i for i, key in enumerate(self.exit_keys) if key.is_collected()])
+        if keys_now > keys_before:
+            reward += 100.0 * (keys_now - keys_before)
 
-        # Progress reward
-        new_distance = self.get_manhattan_distance_to_exit()
+        # b) Pushed a box to clear lava or aqua (positive environmental interaction)
+        lava_removed = len(prev_state.lava_positions) - len(self.lava.get_positions())
+        if lava_removed > 0:
+            reward += 150.0 * lava_removed
+            
+        aqua_removed = len(prev_state.aqua_positions) - len(self.aqua.get_positions())
+        if aqua_removed > 0:
+            reward += 50.0 * aqua_removed
+
+        # --- 3. Penalties and Step Costs ---
+        reward -= 1.0
+
+        # b) Larger penalty for attempting an invalid move
+        if not move_successful:
+            return -50.0 
+
+        # --- 4. Reward Shaping (Guidance toward the correct goal) ---
+        dist_before = self._get_distance_to_primary_target(prev_state)
+        dist_after = self._get_distance_to_primary_target(self.get_state())
+
+        # Reward the agent for getting closer to its current objective
+        reward += (dist_before - dist_after) * 20.0
         
-        # Reward progress, penalize regress
-        reward += (prev_distance - new_distance) * 5.0
-
+        # --- 5. Minor Interaction Reward ---
+        prev_box_set = set(prev_state.box_positions)
+        current_box_set = {box.get_position() for box in self.boxes}
+        if prev_box_set != current_box_set:
+            reward += 50.0
+            
         return reward
+    
+    def _get_distance_to_primary_target(self, state: GameState) -> int:
+        """
+        Calculates the Manhattan distance to the most relevant target.
+        - If keys are uncollected, the target is the nearest uncollected key.
+        - If all keys are collected, the target is the exit.
+        """
+        player_pos = state.player_pos
         
-    def get_state_changeables(self):
+        # Find positions of keys that are not yet collected in the given state
+        uncollected_key_pos = [
+            self.exit_keys[i].get_position() for i, key in enumerate(self.exit_keys)
+            if i not in state.collected_key_indices
+        ]
         
-        state = self.get_state()
-        
-        manhatten_d = self.get_manhattan_distance_to_exit()
+        if uncollected_key_pos:
+            # If there are uncollected keys, the primary target is the closest one
+            return min(self._manhattan_distance(player_pos, key_pos) for key_pos in uncollected_key_pos)
+        else:
+            # Otherwise, the target is the exit
+            return self._manhattan_distance(player_pos, self.exit_pos)
         
         

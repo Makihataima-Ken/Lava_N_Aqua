@@ -273,8 +273,6 @@ class DQNAgent(BaseAgent):
         # Get initial state
         observation = simulation.get_observation()
         state = self._preprocess_observation(observation)
-        
-        prev_distance = simulation.get_manhattan_distance_to_exit()
 
         prev_state = simulation.get_state()
         
@@ -285,13 +283,10 @@ class DQNAgent(BaseAgent):
             
             # Execute action
             move_success = simulation.move_player(action)
-            # reward = simulation.calculate_reward(move_success,prev_distance,prev_state)
-            reward = simulation.calculate_reward(move_success,prev_distance)
-            # reward = simulation.calculate_reward(move_success)
+            reward = simulation.calculate_reward(move_success,prev_state)
             
             reward = np.clip(reward, -10.0, 10.0)
 
-            prev_distance = simulation.get_manhattan_distance_to_exit()
             prev_state = simulation.get_state()
             
             # Get next state

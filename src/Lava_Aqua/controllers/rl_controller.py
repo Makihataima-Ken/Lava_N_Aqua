@@ -316,6 +316,6 @@ class RLController(BaseController):
         axes[1].grid(True, alpha=0.3)
         
         plt.tight_layout()
-        plt.savefig(save_path, dpi=150)
+        plt.savefig(f'assets/training_plots/{save_path}', dpi=150)
         print(f"\n📈 Training curves saved to '{save_path}'")
         plt.show()

@@ -152,6 +152,8 @@ You beat all levels!
             agent.save(f"{agent.name.lower()}_agent.pkl")
             print(f"\n💾 Agent saved to {agent.name.lower()}_agent.pkl")
             
+            self.current_controller.plot_training_curves()
+            
             print("\n" + "=" * 60)
             print("📊 FINAL EVALUATION")
             print("=" * 60)

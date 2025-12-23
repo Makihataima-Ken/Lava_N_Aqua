@@ -41,7 +41,7 @@ def get_available_agent_models(agent_type: str) -> list:
     for file_path in TRAINED_MODELS_DIR.glob("*.pkl"):
         filename = file_path.name
         # Filter by agent type if specified
-        if agent_type == 'qlearning' and 'qlearning' in filename.lower():
+        if agent_type == 'qlearning' and 'q-learning' in filename.lower():
             models.append((filename, str(file_path)))
         elif agent_type == 'dqn' and 'dqn' in filename.lower():
             models.append((filename, str(file_path)))
