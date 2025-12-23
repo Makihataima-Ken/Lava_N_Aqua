@@ -62,10 +62,10 @@ ASSETS_DIR = BASE_DIR / "assets"
 LEVELS_DIR = ASSETS_DIR / "levels"
 SOLUTIONS_DIR = ASSETS_DIR / "solutions"
 TRAINED_MODELS_DIR = ASSETS_DIR /"trained models"
-LEVELS_FILE = LEVELS_DIR / "levels.json"
+# LEVELS_FILE = LEVELS_DIR / "levels.json"
 # LEVELS_FILE = LEVELS_DIR / "assignment.json"
 # LEVELS_FILE = LEVELS_DIR / "temp_wall_test.json"
-# LEVELS_FILE = LEVELS_DIR / "test.json"
+LEVELS_FILE = LEVELS_DIR / "test.json"
 # LEVELS_FILE = LEVELS_DIR / "walls_test.json"
 
 # Game settings

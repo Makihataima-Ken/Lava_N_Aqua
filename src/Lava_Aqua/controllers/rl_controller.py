@@ -191,7 +191,7 @@ class RLController(BaseController):
                 self.render_frame()
                 time.sleep(0.2)
                 
-        self.on_level_complete(len(moves))
+        self.on_level_complete(len(moves),state)
         
         if state:
             return GameResult.WIN
@@ -216,10 +216,13 @@ class RLController(BaseController):
         print(f"Agent: {self.agent.name}")
         print(f"{'='*70}")
     
-    def on_level_complete(self, steps:int) -> None:
+    def on_level_complete(self, steps:int, state:bool) -> None:
         """Called when a level is completed."""
         print(f"\n{'='*70}")
-        print(f"🎉 Level Complete!")
+        if state:
+            print("Level Complete :)")
+        else:
+            print("level failed :(")
         print(f"  Total steps: {steps}")
         print(f"{'='*70}")
     

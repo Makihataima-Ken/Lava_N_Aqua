@@ -149,8 +149,8 @@ You beat all levels!
             )
             
             # Save and evaluate
-            agent.save('qlearning_agent.pkl')
-            print("\n💾 Agent saved to 'qlearning_agent.pkl'")
+            agent.save(f"{agent.name.lower()}_agent.pkl")
+            print(f"\n💾 Agent saved to {agent.name.lower()}_agent.pkl")
             
             print("\n" + "=" * 60)
             print("📊 FINAL EVALUATION")

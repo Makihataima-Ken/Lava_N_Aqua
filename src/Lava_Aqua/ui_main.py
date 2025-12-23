@@ -200,9 +200,10 @@ def show_controller_menu(screen: pygame.Surface, app: GameApplication) -> None:
         show_agent_selection_menu(screen, app, "qlearning", base_config)
     
     def select_dqn():
+        width, height = app.game_logic.get_grid_dimensions()
         base_config = {
             "agent": DQNAgent(
-                state_shape=app.game_logic.get_grid_dimensions() + (6,)
+                state_shape=(width, height, 6)
             ),
             "visualize": False
         }

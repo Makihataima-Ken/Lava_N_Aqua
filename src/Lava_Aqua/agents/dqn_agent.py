@@ -105,7 +105,7 @@ class NeuralNetwork:
         prev_size = input_size
         for hidden_size in hidden_sizes:
             self.layers.append(DenseLayer(prev_size, hidden_size))
-            self.activations.append(ReLU())
+            self.activations.append(ReLU()) 
             prev_size = hidden_size
         
         # Output layer (no activation)
@@ -166,14 +166,14 @@ class DQNAgent(BaseAgent):
         learning_rate: float = 0.001,
         gamma: float = 0.99,
         epsilon: float = 1.0,
-        epsilon_decay: float = 0.995,
-        epsilon_min: float = 0.01,
+        epsilon_decay: float = 0.999,
+        epsilon_min: float = 0.05,
         batch_size: int = 32,
         buffer_size: int = 10000,
         target_update_freq: int = 100,
-        max_steps_per_episode: int = 500
+        max_steps_per_episode: int = 60
     ):
-        super().__init__("DQN Agent")
+        super().__init__("DQN")
         
         # Hyperparameters
         self.state_shape = state_shape
@@ -274,6 +274,10 @@ class DQNAgent(BaseAgent):
         observation = simulation.get_observation()
         state = self._preprocess_observation(observation)
         
+        prev_distance = simulation.get_manhattan_distance_to_exit()
+
+        prev_state = simulation.get_state()
+        
         while steps < self.max_steps:
             # Select action
             action_idx = self._select_action(state, training)
@@ -281,7 +285,14 @@ class DQNAgent(BaseAgent):
             
             # Execute action
             move_success = simulation.move_player(action)
-            reward = simulation.calculate_reward(move_success)
+            # reward = simulation.calculate_reward(move_success,prev_distance,prev_state)
+            reward = simulation.calculate_reward(move_success,prev_distance)
+            # reward = simulation.calculate_reward(move_success)
+            
+            reward = np.clip(reward, -10.0, 10.0)
+
+            prev_distance = simulation.get_manhattan_distance_to_exit()
+            prev_state = simulation.get_state()
             
             # Get next state
             next_observation = simulation.get_observation()

@@ -20,9 +20,9 @@ class QLearningAgent(BaseAgent):
         epsilon: float = 1.0,
         epsilon_decay: float = 0.998,
         epsilon_min: float = 0.05,
-        max_steps_per_episode: int = 500
+        max_steps_per_episode: int = 60
     ):
-        super().__init__("Q-Learning Agent")
+        super().__init__("Q-Learning")
         
         # Q-Learning hyperparameters
         self.lr = learning_rate
@@ -108,6 +108,10 @@ class QLearningAgent(BaseAgent):
         steps = 0
         terminated = False
         
+        
+        prev_distance = simulation.get_manhattan_distance_to_exit()
+        prev_state = simulation.get_state()
+        
         while steps < self.max_steps:
             # Get current state
             state_hash = self._hash_state(simulation.get_state())
@@ -118,7 +122,13 @@ class QLearningAgent(BaseAgent):
             
             # Execute action
             move_success = simulation.move_player(action)
-            reward = simulation.calculate_reward(move_success)
+            # reward = simulation.calculate_reward(move_success,prev_distance,prev_state)
+            reward = simulation.calculate_reward(move_success,prev_distance)
+            # reward = simulation.calculate_reward(move_success)
+            
+
+            prev_distance = simulation.get_manhattan_distance_to_exit()
+            prev_state = simulation.get_state()
             
             episode_reward += reward
             steps += 1

@@ -473,6 +473,11 @@ class GameLogic:
         return self.level_complete
 
     
+    def get_manhattan_distance_to_exit(self) -> int:
+        player_pos = self.player.get_position()
+        exit_pos = self.exit_pos
+        return abs(player_pos[0] - exit_pos[0]) + abs(player_pos[1] - exit_pos[1])
+    
     # -------------------------------------------------------
     # AI Specific helper functions
     # -------------------------------------------------------
@@ -520,31 +525,63 @@ class GameLogic:
         
         return observation
     
-    def calculate_reward(self, move:bool) -> float:
-        """
-        Calculate reward for current step.
-        """
-        # move_successful = self.simulate_move(direction=direction)
+    # def calculate_reward(self, move: bool, prev_distance: float, prev_state: GameState) -> float:
+    #     # WIN
+    #     if self.level_complete:
+    #         return +1000.0
+
+    #     # LOSE (make it worse than wandering)
+    #     if self.game_over:
+    #         return -500.0
+
+    #     # Invalid move
+    #     if not move:
+    #         return -50.0
+
+    #     # Step cost
+    #     reward = 1.0
         
-        # Win condition
+    #     prev_lava = len(prev_state.lava_positions)
+    #     new_lava = len(self.lava.get_positions())
+        
+    #     reward += (new_lava - prev_lava)* 10.0
+        
+    #     # Progress reward
+    #     new_distance = self.get_manhattan_distance_to_exit()
+        
+    #     # Reward progress, penalize regress
+    #     reward += (prev_distance - new_distance) * 5.0
+
+    #     return reward
+    
+    def calculate_reward(self, move: bool, prev_distance: float) -> float:
+        # WIN
         if self.level_complete:
-            return 1000.0
-        
-        # Lose condition
+            return +1000.0
+
+        # LOSE (make it worse than wandering)
         if self.game_over:
-            return -100.0
-        
-        # Invalid move penalty
+            return -500.0
+
+        # Invalid move
         if not move:
-            return -10.0
+            return -50.0
+
+        # Step cost
+        reward = 1.0
+
+        # Progress reward
+        new_distance = self.get_manhattan_distance_to_exit()
         
-        # Small negative reward for each step (encourages faster solutions)
-        reward = -1.0
-        
-        # Distance-based reward (optional - encourages moving toward exit)
-        player_pos = self.player.get_position()
-        exit_pos = self.exit_pos
-        distance = abs(player_pos[0] - exit_pos[0]) + abs(player_pos[1] - exit_pos[1])
-        reward -= distance * 0.01
-        
+        # Reward progress, penalize regress
+        reward += (prev_distance - new_distance) * 5.0
+
         return reward
+        
+    def get_state_changeables(self):
+        
+        state = self.get_state()
+        
+        manhatten_d = self.get_manhattan_distance_to_exit()
+        
+        
