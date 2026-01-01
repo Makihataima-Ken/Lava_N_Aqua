@@ -23,3 +23,7 @@ solutions/
 
 *.pkl
 *.png
+
+# project description files
+Lava_and_Aqua-output.md
+Lava_and_Aqua-output.txt
