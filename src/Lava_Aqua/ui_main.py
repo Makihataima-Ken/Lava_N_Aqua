@@ -173,10 +173,10 @@ def show_controller_menu(screen: pygame.Surface, app: GameApplication) -> None:
     direct_configs = {
         "Player": {"visualize": True},
         "BFS": {"solver": BFSSolver(), "visualize": True},
-        "DFS": {"solver": DFSSolver(), "visualize": True},
-        "UCS": {"solver": UCSSolver(), "visualize": True},
+        "DFS": {"solver": DFSSolver(), "visualize": False},
+        "UCS": {"solver": UCSSolver(), "visualize": False},
         "Dijkstra": {"solver": DijkstraSolver(), "visualize": True},
-        "A*": {"solver": AStarSolver(), "visualize": True},
+        "A*": {"solver": AStarSolver(), "visualize": False},
         "Hill Climbing": {"solver": HillClimbingSolver(), "visualize": True},
     }
     

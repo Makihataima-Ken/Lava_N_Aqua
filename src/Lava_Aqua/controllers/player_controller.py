@@ -1,8 +1,6 @@
 from typing import Optional
-import time
 import pygame
 
-from src.Lava_Aqua.core.game import GameLogic
 from src.Lava_Aqua.core.constants import Direction, GameResult
 from .base_controller import BaseController
 
@@ -22,7 +20,7 @@ class PlayerController(BaseController):
                 return None, 'quit'
             
             elif event.type == pygame.KEYDOWN:
-                # Movement keys
+    
                 if event.key in (pygame.K_LEFT, pygame.K_a):
                     return Direction.LEFT, None
                 elif event.key in (pygame.K_RIGHT, pygame.K_d):
@@ -32,7 +30,6 @@ class PlayerController(BaseController):
                 elif event.key in (pygame.K_DOWN, pygame.K_s):
                     return Direction.DOWN, None
                 
-                # Action keys
                 elif event.key == pygame.K_r:
                     return None, 'reset'
                 elif event.key in (pygame.K_u, pygame.K_z):
@@ -49,10 +46,9 @@ class PlayerController(BaseController):
         self.running = True
         
         while self.running:
-            # Process input (mode-specific)
+
             movement, action = self.process_input()
             
-            # Handle actions
             if action == 'quit':
                 return GameResult.QUIT
             elif action == 'reset':
@@ -63,7 +59,6 @@ class PlayerController(BaseController):
             elif movement:
                 self.execute_move(movement)
             
-            # Check game state
             if self.game_logic.game_over:
                 result = self.handle_game_over_state()
                 if result != GameResult.CONTINUE:
@@ -72,7 +67,6 @@ class PlayerController(BaseController):
             if self.game_logic.level_complete:
                 return self.handle_victory_state()
             
-            # Render
             self.render_frame()
         
         return GameResult.QUIT

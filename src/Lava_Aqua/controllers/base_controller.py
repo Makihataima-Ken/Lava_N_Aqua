@@ -145,11 +145,9 @@ class BaseController(ABC):
         self.renderer.draw_game_state(self.game_logic, animation_time)
         self.renderer.draw_game_over(self.game_logic.moves)
         self.renderer.flip()
-        
-        # Trigger custom handler
+
         self.on_game_over()
-        
-        # Wait for input (overridable by subclasses)
+
         return self._wait_for_game_over_input()
     
     def _wait_for_game_over_input(self) -> GameResult:
@@ -184,11 +182,9 @@ class BaseController(ABC):
         self.renderer.draw_game_state(self.game_logic, animation_time)
         self.renderer.draw_victory(self.game_logic.moves)
         self.renderer.flip()
-        
-        # Trigger custom handler
+
         self.on_level_complete()
-        
-        # Wait before continuing
+
         pygame.time.wait(2000)
         return GameResult.WIN
     

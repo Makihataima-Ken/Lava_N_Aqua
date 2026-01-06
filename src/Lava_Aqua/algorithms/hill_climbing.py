@@ -1,8 +1,7 @@
 import time
-from typing import Dict, List, Optional, Set, Tuple
+from typing import List, Optional
 from copy import deepcopy
 from src.Lava_Aqua.core.game import GameLogic
-from src.Lava_Aqua.graphics.renderer import Renderer
 from src.Lava_Aqua.algorithms.base_solver import BaseSolver, PathNode
 from src.Lava_Aqua.core.constants import Direction
 

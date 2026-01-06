@@ -1,7 +1,6 @@
 import pygame
 import sys
-from typing import Optional, Dict, Tuple
-import time
+from typing import Optional, Dict
 
 from src.Lava_Aqua.core.game import GameLogic
 from src.Lava_Aqua.core.constants import GameResult
@@ -14,21 +13,20 @@ from src.Lava_Aqua.agents.base_agent import BaseAgent
 class GameApplication:
     """Optimized game application with controller factory support."""
     
-    # Class constants
     WELCOME_MSG = """🎮 Lava & Aqua
-{'=' * 40}
-Controls:
-  WASD or Arrow Keys - Move
-  R - Reset level
-  U/Z - Undo last move
-  ESC - Quit
-{'=' * 40}"""
+                        {'=' * 40}
+                        Controls:
+                        WASD or Arrow Keys - Move
+                        R - Reset level
+                        U/Z - Undo last move
+                        ESC - Quit
+                        {'=' * 40}"""
     
     VICTORY_MSG = f"""
-{'=' * 40}
-🎉 CONGRATULATIONS!
-You beat all levels!
-{'=' * 40}"""
+                    {'=' * 40}
+                    🎉 CONGRATULATIONS!
+                    You beat all levels!
+                    {'=' * 40}"""
     
     def __init__(self):
         """Initialize the game application."""

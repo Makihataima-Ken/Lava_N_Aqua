@@ -44,19 +44,16 @@ class SolverController(BaseController):
         # Reset solver stats
         self.solver.reset_stats()
         
-        tracemalloc.start()
+        # tracemalloc.start()
         
         # Run solver
-        start_time = time.time()
         solution = self.solver.solve(self.game_logic,self.visualize)
-        # solution = self.solver.solve(self.game_logic)
-        solve_time = time.time() - start_time
         
-        current, peak = tracemalloc.get_traced_memory()
-        print(f"Current memory usage: {current/1024:.2f} KB")
-        print(f"Peak memory usage: {peak/1024:.2f} KB")
+        # current, peak = tracemalloc.get_traced_memory()
+        # print(f"Current memory usage: {current/1024:.2f} KB")
+        # print(f"Peak memory usage: {peak/1024:.2f} KB")
 
-        tracemalloc.stop()
+        # tracemalloc.stop()
         
         self.solving_in_progress = False
         
@@ -65,12 +62,12 @@ class SolverController(BaseController):
             self.current_move_index = 0
             self.solving_complete = False
             
-            print(f"Solution found: {len(solution)} moves in {solve_time:.3f}s")
+            print(f"Solution found: {len(solution)} moves in {self.solver.stats['time_taken']:.3f}s")
             self.solver.print_stats()
             self.solver.save_to_json(SOLUTIONS_DIR /f"{self.solver.name}"/f"Level{self.game_logic.get_level_number()}.json")
             return True
         else:
-            print(f"No solution found (searched for {solve_time:.3f}s)")
+            print(f"No solution found (searched for {self.solver.stats['time_taken']:.3f}s)")
             self.solver.print_stats()
             return False
     
@@ -103,13 +100,11 @@ class SolverController(BaseController):
         """Run the solver loop for a level."""
         self.on_level_start()
         
-        # First, solve the level
         if not self.solve_current_level():
             print("Cannot proceed without solution!")
             pygame.time.wait(2000)
             return GameResult.CONTINUE
         
-        # Then execute the solution
         self.running = True
         
         while self.running and not self.solving_complete:
@@ -128,7 +123,6 @@ class SolverController(BaseController):
                     self._display_failed_state()
                     return GameResult.QUIT
                 
-                # if self.visualize:
                 time.sleep(self.move_delay)
             
             if self.game_logic.game_over:
@@ -138,8 +132,7 @@ class SolverController(BaseController):
             
             if self.game_logic.level_complete:
                 return self.handle_victory_state()
-            
-            # if self.visualize:
+
             self.render_frame()
         
         if self.solving_complete and not self.game_logic.level_complete:
@@ -164,12 +157,12 @@ class SolverController(BaseController):
         print(f"{'='*60}")
     
     def on_level_complete(self) -> None:
-        # """Called when level is completed."""
-        # stats = self.get_stats()
-        # print(f"\n Solution verified successfully!")
-        # print(f"  Moves executed: {stats['moves']}")
-        # print(f"  Execution time: {stats['elapsed_time']:.1f}s")
-        pass
+        """Called when level is completed."""
+        stats = self.get_stats()
+        print(f"\n Solution verified successfully!")
+        print(f"  Moves executed: {stats['moves']}")
+        print(f"  Execution time: {stats['elapsed_time']:.1f}s")
+        # pass
     
     def on_game_over(self) -> None:
         """Called when game over occurs."""

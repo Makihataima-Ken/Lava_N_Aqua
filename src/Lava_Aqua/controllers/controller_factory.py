@@ -1,4 +1,4 @@
-from typing import Type, Optional, Dict, Any
+from typing import Type, Dict
 from enum import Enum
 
 from src.Lava_Aqua.agents.base_agent import BaseAgent
@@ -53,7 +53,7 @@ class ControllerFactory:
         try:
             return controller_class(game_logic, **kwargs)
         except TypeError as e:
-            # Re-raise the TypeError with more context
+
             raise TypeError(
                 f"Failed to create {controller_class.__name__} for "
                 f"type {controller_type}. Missing/invalid arguments? "
