@@ -73,5 +73,6 @@ class HillClimbingSolver(BaseSolver):
                     
                 new_path = PathNode(val=move, parent=path)
                 heapq.heappush(p_queue, (new_h, new_state, new_path))
-           
+        
+        self.stats['time_taken'] = time.time() - start_time
         return None

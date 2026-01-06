@@ -72,5 +72,6 @@ class BFSSolver(BaseSolver):
                 # new_path = path + [move]
                 new_path = PathNode(move,path)
                 queue.append((new_state, new_path))
-           
+        
+        self.stats['time_taken'] = time.time() - start_time
         return None

@@ -71,7 +71,8 @@ class UCSSolver(BaseSolver):
                 new_path = PathNode(val=move,parent=path)
                 # new_path = path + [move]
                 heapq.heappush(p_queue,(new_state, new_path))
-           
+        
+        self.stats['time_taken'] = time.time() - start_time
         return None
             
             

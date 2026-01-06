@@ -79,5 +79,6 @@ class DijkstraSolver(BaseSolver):
                         p_queue,
                         (new_cost, new_state, new_path)
                     )
-           
+        
+        self.stats['time_taken'] = time.time() - start_time
         return None
