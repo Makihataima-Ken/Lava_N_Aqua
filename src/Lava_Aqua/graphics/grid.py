@@ -16,11 +16,9 @@ class Grid:
         self._height: int = len(grid_data)
         self._tiles: List[List[Tile]] = []
         
-        # Create tiles from grid data
         for y, row in enumerate(grid_data):
             tile_row = []
             for x, char in enumerate(row):
-                # Convert character to TileType
                 tile_type = self._char_to_tile_type(char)
                 tile = Tile((x, y), tile_type)
                 tile_row.append(tile)

@@ -133,7 +133,7 @@ class SolverController(BaseController):
             if self.game_logic.level_complete:
                 return self.handle_victory_state()
 
-            self.render_frame(show_=False)
+            self.render_frame(show_ui=False)
         
         if self.solving_complete and not self.game_logic.level_complete:
             print("Solution executed but level not completed!")

@@ -1,5 +1,3 @@
-"""Tile entity and tile rendering."""
-
 from typing import Tuple
 import pygame
 import math

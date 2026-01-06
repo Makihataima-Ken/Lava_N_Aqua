@@ -13,7 +13,7 @@ from src.Lava_Aqua.agents.base_agent import BaseAgent
 class GameApplication:
     """Optimized game application with controller factory support."""
     
-    WELCOME_MSG = """🎮 Lava & Aqua
+    WELCOME_MSG = f"""🎮 Lava & Aqua
                         {'=' * 40}
                         Controls:
                         WASD or Arrow Keys - Move
@@ -46,7 +46,7 @@ class GameApplication:
             sys.exit(1)
     
     def run(self, solver: BaseSolver = None, agent: BaseAgent = None,
-            move_delay: float = 0.2, visualize: bool = True, agent_path: str = None) -> None:
+            move_delay: float = 0.1, visualize: bool = False, agent_path: str = None) -> None:
         """Run the main game loop.
         
         Args:

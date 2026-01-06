@@ -1,76 +1,67 @@
 from src.Lava_Aqua.app.game_app import GameApplication
 
-from src.Lava_Aqua.core.game import GameLogic
-from src.Lava_Aqua.controllers.player_controller import PlayerController
-from src.Lava_Aqua.algorithms import BFSSolver
-
 def main_user_play():
     """Run game in user play mode."""
     app = GameApplication()
     app.run()
 
 
-def main_solver_bfs():
+def main_solver_bfs(visualize=False):
     """Run game with BFS solver."""
+    from src.Lava_Aqua.algorithms import BFSSolver
     app = GameApplication()
     solver = BFSSolver()
     app.run(
         solver=solver,
-        move_delay=0.1,
-        visualize=True
+        visualize=visualize
     )
     
-def main_solver_dfs():
+def main_solver_dfs(visualize=False):
     """Run game with DFS solver."""
     from src.Lava_Aqua.algorithms.dfs_solver import DFSSolver
     app = GameApplication()
     solver = DFSSolver()
     app.run(
         solver=solver,
-        move_delay=0.1,
-        visualize=True
+        visualize=visualize
     )
     
-def main_solver_ucs():
+def main_solver_ucs(visualize=False):
     """Run game with UCS solver."""
     from src.Lava_Aqua.algorithms.ucs_solver import UCSSolver
     app = GameApplication()
     solver = UCSSolver()
     app.run(
         solver=solver,
-        move_delay=0.1,
-        visualize=True
+        visualize=visualize
     )
     
-def main_solver_dijkstra():
+def main_solver_dijkstra(visualize=False):
     """Run game with Dijkstra solver."""
     from src.Lava_Aqua.algorithms.dijkstra_solver import DijkstraSolver
     app = GameApplication()
     solver = DijkstraSolver()
     app.run(
         solver=solver,
-        move_delay=0.1,
-        visualize=True
+        visualize=visualize
     )
     
-def main_solver_aStar():
+def main_solver_aStar(visualize=False):
     from src.Lava_Aqua.algorithms.aStar_solver import AStarSolver
     app = GameApplication()
     solver = AStarSolver()
     app.run(
         solver=solver,
-        move_delay=0.1,
-        visualize=True
+        visualize=visualize
     )
     
-def main_solver_hill_climbing():
+def main_solver_hill_climbing(visualize=False):
     from src.Lava_Aqua.algorithms.hill_climbing import HillClimbingSolver
     app = GameApplication()
     solver = HillClimbingSolver()
     app.run(
         solver=solver,
-        move_delay=0.1,
-        visualize=True
+        visualize=visualize
     )
 
 def main_agent_train_qlearning():
@@ -127,49 +118,37 @@ def main():
     parser = argparse.ArgumentParser(description='Lava & Aqua Game')
     parser.add_argument(
         '--mode',
-        choices=['play', 'bfs', 'dfs', 'random','aStar','ucs','qlearning','dijkstra','dqn','hc','minimax'],
+        choices=['play', 'bfs', 'dfs', 'random','aStar','ucs','qlearning','dijkstra','dqn','hc'],
         default='play',
         help='Game mode'
     )
     parser.add_argument(
-        '--speed',
-        type=float,
-        default=0.2,
-        help='Solver move delay in seconds'
-    )
-    parser.add_argument(
-        '--max-depth',
-        type=int,
-        default=50,
-        help='Max depth for DFS solver'
-    )
-    parser.add_argument(
-        '--no-visualize',
+        '--visualize',
         action='store_true',
-        help='Disable visualization (faster solving)'
+        help='Enable visualization (default: disabled)'
     )
     
     args = parser.parse_args()
+    visualize = args.visualize
     
     if args.mode == 'play':
-        main_user_play()
+        main_user_play(visualize)
     elif args.mode == 'bfs':
-        main_solver_bfs()
+        main_solver_bfs(visualize)
     elif args.mode == 'dfs':
-        main_solver_dfs()
+        main_solver_dfs(visualize)
     elif args.mode == 'ucs':
-        main_solver_ucs()
+        main_solver_ucs(visualize)
     elif args.mode == 'dijkstra':
-        main_solver_dijkstra()
+        main_solver_dijkstra(visualize)
+    elif args.mode =='hc':
+        main_solver_hill_climbing(visualize)
+    elif args.mode == 'aStar':
+        main_solver_aStar(visualize)
     elif args.mode == 'qlearning':
         main_agent_train_qlearning()
-    elif args.mode == 'aStar':
-        main_solver_aStar()
     elif args.mode == 'dqn':
         main_agent_train_DQN()
-    elif args.mode =='hc':
-        main_solver_hill_climbing()
-
 
 if __name__ == "__main__":
     main()

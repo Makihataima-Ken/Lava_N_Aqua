@@ -1,5 +1,5 @@
 import pygame
-from typing import List, Callable, Tuple
+from typing import List, Callable
 
 class MenuItem:
     """Represents a single item in the menu."""
