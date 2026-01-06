@@ -1,5 +1,3 @@
-"""Lava entity."""
-
 from typing import List, Tuple, Set
 import pygame
 
@@ -114,26 +112,21 @@ class Lava:
         """
         import math
         
-        # Calculate animation wave for pulsing effect
         wave = abs(math.sin(animation_time * 2)) * 0.3 + 0.7
         
         for x, y in self._positions:
-            # Calculate pixel position
             pixel_x = offset_x + x * TILE_SIZE
             pixel_y = offset_y + y * TILE_SIZE
             
             rect = pygame.Rect(pixel_x, pixel_y, TILE_SIZE, TILE_SIZE)
             
-            # Animate lava color (pulsing effect)
             base_color = Color.LAVA
             dark_color = Color.LAVA_DARK
             
             r = int(dark_color[0] + (base_color[0] - dark_color[0]) * wave)
             g = int(dark_color[1] + (base_color[1] - dark_color[1]) * wave)
             b = int(dark_color[2] + (base_color[2] - dark_color[2]) * wave)
-            
-            # Draw lava tile
+
             pygame.draw.rect(surface, (r, g, b), rect)
-            
-            # Draw border
+
             pygame.draw.rect(surface, Color.LAVA_DARK, rect, 2)

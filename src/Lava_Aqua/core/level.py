@@ -48,7 +48,6 @@ class LevelData:
         lava_poses, box_poses, aqua_poses, exit_keys_poses = [], [], [], []
         
         for y in range(height):
-            # Ensure grid is not ragged
             if len(grid[y]) != width:
                 raise ValueError(f"Level '{name}' has inconsistent row width")
             for x in range(width):
@@ -156,7 +155,6 @@ class LevelManager:
                 if not isinstance(raw_levels, list):
                     raise ValueError("Levels file root must be a list")
             
-            # Parse all levels at once
             self.levels = [LevelData.from_dict(lvl) for lvl in raw_levels]
             
             if not self.levels:
@@ -174,11 +172,9 @@ class LevelManager:
         Load a specific level by index.
         This is now a fast lookup.
         """
-        # More concise index check
         if level_index not in range(len(self.levels)):
             raise IndexError(f"Level index {level_index} out of range")
-        
-        # Just return the already-parsed object
+
         return self.levels[level_index]
     
     def get_current_level(self) -> LevelData:

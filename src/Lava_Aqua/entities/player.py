@@ -1,5 +1,3 @@
-"""Player entity."""
-
 from typing import Tuple
 import pygame
 
@@ -33,22 +31,6 @@ class Player:
         """
         self._position = list(position)
     
-    def move(self, direction: Tuple[int, int]) -> Tuple[int, int]:
-        """Calculate new position after move.
-        
-        Args:
-            direction: Direction tuple (dx, dy)
-            
-        Returns:
-            New position (x, y)
-        """
-        dx, dy = direction
-        # Fixed: Use += instead of =+
-        # Fixed: Correct order - _position[0] is x, _position[1] is y
-        new_x = self._position[0] + dx
-        new_y = self._position[1] + dy
-        return (new_x, new_y)
-    
     def draw(self, surface: pygame.Surface, offset_x: int, offset_y: int) -> None:
         """Draw player on surface.
         
@@ -57,7 +39,6 @@ class Player:
             offset_x: X offset for grid
             offset_y: Y offset for grid
         """
-        # Get position as (x, y)
         x, y = self._position
         
         # Calculate pixel position
@@ -73,8 +54,6 @@ class Player:
                           (center[0] + 2, center[1] + 2), radius)
         # Main body
         pygame.draw.circle(surface, Color.PLAYER, center, radius)
-        # # Highlight
-        # pygame.draw.circle(surface, Color.WHITE, 
-        #                   (center[0] - 3, center[1] - 3), radius // 3)
+
         # Border
         pygame.draw.circle(surface, Color.PLAYER_DARK, center, radius, 2)

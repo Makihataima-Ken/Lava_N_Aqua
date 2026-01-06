@@ -4,7 +4,6 @@ from pathlib import Path
 # Grid tile size
 TILE_SIZE = 40
 
-# Colors (RGB)
 class Color:
     """Color constants."""
     BLACK = (0, 0, 0)
@@ -67,10 +66,6 @@ LEVELS_FILE = LEVELS_DIR / "levels.json"
 # LEVELS_FILE = LEVELS_DIR / "temp_wall_test.json"
 # LEVELS_FILE = LEVELS_DIR / "test.json"
 # LEVELS_FILE = LEVELS_DIR / "walls_test.json"
-
-# Game settings
-MAX_UNDO_HISTORY = 50
-MOVE_ANIMATION_DURATION = 0.15  # seconds
 
 class GameResult(Enum):
     """Possible outcomes of a level."""

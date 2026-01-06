@@ -1,5 +1,3 @@
-"""Aqua entity."""
-
 from typing import List, Tuple, Set
 import pygame
 

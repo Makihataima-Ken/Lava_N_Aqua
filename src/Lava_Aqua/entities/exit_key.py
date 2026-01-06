@@ -66,17 +66,14 @@ class ExitKey:
         if self._collected:
             return
         
-        # Get position as (x, y)
         x, y = self._position
         
-        # Calculate pixel position
         pixel_x = offset_x + x * TILE_SIZE
         pixel_y = offset_y + y * TILE_SIZE
         
         center = (pixel_x + TILE_SIZE // 2, pixel_y + TILE_SIZE // 2)
         radius = TILE_SIZE // 5 
         
-        # Animate glow
         glow = abs(math.sin(animation_time * 2)) * 0.3 + 0.7
         
         base_color = Color.EXIT

@@ -9,8 +9,7 @@ class Box:
         Args:
             position: Starting position as (x, y) tuple
         """
-        # Store as list to allow modification, or use tuple
-        self._position = list(position)  # Convert to list for mutability
+        self._position = position
         
     def get_position(self) -> Tuple[int, int]:
         """Get box's position.
@@ -26,7 +25,7 @@ class Box:
         Args:
             position: New position as (x, y) tuple
         """
-        self._position = list(position)
+        self._position = position
         
     def draw(self, surface: pygame.Surface, offset_x: int, offset_y: int) -> None:
         """Draw box on surface.
@@ -36,13 +35,10 @@ class Box:
             offset_x: X offset for grid
             offset_y: Y offset for grid
         """
-        # Get position as (x, y)
         x, y = self._position
         
-        # Calculate pixel position
         pixel_x = offset_x + x * TILE_SIZE
         pixel_y = offset_y + y * TILE_SIZE
         
-        # Draw box as a rectangle (for simplicity)
         box_rect = pygame.Rect(pixel_x, pixel_y, TILE_SIZE, TILE_SIZE)
         pygame.draw.rect(surface, Color.BOX, box_rect)

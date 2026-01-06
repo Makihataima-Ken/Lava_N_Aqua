@@ -1,4 +1,4 @@
-from typing import List, Tuple, Optional, Dict, Any
+from typing import List, Tuple, Optional
 from dataclasses import dataclass
 from copy import deepcopy
 import numpy as np
@@ -27,16 +27,14 @@ class GameState:
     def __lt__(self,other):
         return self.lava_positions < other.lava_positions
         
-
-
 class GameLogic:
     
     def __init__(self) -> None:
         self.level_manager = LevelManager()
         self.player = Player((0, 0))
         self.lava = Lava([])
-        self.aqua = Aqua([]) # WIP
-        self.boxes: List[Box] = [] # WIP
+        self.aqua = Aqua([])
+        self.boxes: List[Box] = []
         self.grid: Optional[Grid] = None
         self.exit_pos: Tuple[int, int] = (0, 0)
         self.moves = 0
@@ -103,18 +101,14 @@ class GameLogic:
         if not self.history:
             return False
         
-        # Pop the state from history and load it.
-        # The new load_state method will correctly handle the grid changes.
         state = self.history.pop()
         self.load_state(state)
         
-        # We also need to restore game_over and level_complete flags, which load_state doesn't manage
         self.game_over = False
         self.level_complete = False
         
         return True
-
-    
+ 
     def reset_level(self) -> None:
         self.load_current_level()
         
@@ -134,18 +128,7 @@ class GameLogic:
         self.level_manager.current_level_index = level_index
         self.load_current_level()
 
-        
-    def _get_active_temp_wall_at(self, pos: Tuple[int, int]) -> Optional[TemporaryWall]:
-        for wall in self.temp_walls:
-            if wall.get_position() == pos and wall.is_blocking():
-                return wall
-        return None
-    
-    def _get_temp_wall_at(self, pos: Tuple[int, int]) -> Optional[TemporaryWall]:
-        for wall in self.temp_walls:
-            if wall.get_position() == pos:
-                return wall
-        return None
+    # moving related functions
     
     def movable(self, pos: Tuple[int, int]) -> bool:
         x, y = pos
@@ -162,8 +145,7 @@ class GameLogic:
         
         if self.game_over or self.level_complete:
             return False
-        
-        
+              
         dx, dy = direction.value
         current_pos = self.player.get_position()
         new_pos = (current_pos[0] + dx, current_pos[1] + dy)
@@ -171,7 +153,6 @@ class GameLogic:
         if not self.movable(new_pos):
             return False
         
-
         box_to_push = self._get_box_at(new_pos)
 
         move_successful = False
@@ -183,69 +164,52 @@ class GameLogic:
 
         if move_successful:
             self._update_game_state() 
-            self.allowed_moves()
             return True
 
         return False
-        
-    def _get_box_at(self, pos: Tuple[int, int]) -> Optional[Box]:
-        """Find if a box is at a given (x, y) position."""
-        for box in self.boxes:
-            if box.get_position() == pos:
-                return box
-        return None
     
-    def _handle_box_push(self, box_to_push, box_pos: Tuple[int, int], direction: Direction) -> bool:
+    def _handle_box_push(self, box_to_push: Box, box_pos: Tuple[int, int], direction: Direction) -> bool:
         """Handle pushing a box. Returns True if successful."""
-        # Calculate where the box would move
         dx, dy = direction.value
         box_new_pos = (box_pos[0] + dx, box_pos[1] + dy)
         
-        # Check if the box can be pushed
         if not self._can_push_box(box_new_pos):
             return False
         
-        # Execute the push
         self._execute_box_push(box_to_push, box_pos, box_new_pos)
         return True
     
     def _can_push_box(self, box_new_pos: Tuple[int, int]) -> bool:
-        # Check for another box
+
         if self._get_box_at(box_new_pos) is not None:
             return False
         
-        # Check for wall
         if not self.grid.is_walkable(box_new_pos[0], box_new_pos[1]):
             return False
         
-        # Check for active temporary wall (NEW)
         if self._get_active_temp_wall_at(box_new_pos):
             return False
         
         return True
 
-    def _execute_box_push(self, box_to_push, player_new_pos: Tuple[int, int], box_new_pos: Tuple[int, int]):
+    def _execute_box_push(self, box_to_push: Box, player_new_pos: Tuple[int, int], box_new_pos: Tuple[int, int]):
         """Execute the box push and player movement."""
-        self.save_state()  # Save state before moving
+        self.save_state()
         
-        # Move the box
         box_to_push.set_position(box_new_pos)
         
-        # Handle box landing on lava
         if self.lava.is_at(box_new_pos):
             self.lava.remove_at(box_new_pos)
         
-        # Handle box landing on aqua
         if self.aqua.is_at(box_new_pos):
             self.aqua.remove_at(box_new_pos)
-        
-        # Move the player
+
         self.player.set_position(player_new_pos)
         self.moves += 1
 
     def _handle_empty_space_move(self, new_pos: Tuple[int, int]) -> bool:
         """Handle moving into empty space. Returns True if successful."""
-        self.save_state()  # Save state before moving
+        self.save_state()
         self.player.set_position(new_pos)
         self.moves += 1
         return True
@@ -277,18 +241,16 @@ class GameLogic:
         """Turn tiles where lava and aqua collide into walls."""
         lava_positions = set(self.lava.get_positions())
         aqua_positions = set(self.aqua.get_positions())
-        collisions = lava_positions & aqua_positions  # intersection
+        collisions = lava_positions & aqua_positions
 
         for (x, y) in collisions:
-            # 1. Remove lava and aqua
+            
             self.lava.remove_at((x, y))
             self.aqua.remove_at((x, y))
 
-            # 2. Turn this tile into a wall in the grid
             if self.grid:
                 self.grid.set_tile_type(x, y, TileType.WALL)
                 self.altered_tile_positions.append((x,y))
-
     
     def _check_game_state(self) -> None:
         player_pos = self.player.get_position()
@@ -310,7 +272,26 @@ class GameLogic:
         if self.lava.is_at(player_pos):
             self.game_over = True
             
-    # Helper methods
+    # Helper methods -----------------------------------
+    def _get_active_temp_wall_at(self, pos: Tuple[int, int]) -> Optional[TemporaryWall]:
+        wall = self._get_temp_wall_at(pos)
+        if wall and wall.is_blocking():
+            return wall
+        return None
+    
+    def _get_temp_wall_at(self, pos: Tuple[int, int]) -> Optional[TemporaryWall]:
+        for wall in self.temp_walls:
+            if wall.get_position() == pos:
+                return wall
+        return None
+    
+    def _get_box_at(self, pos: Tuple[int, int]) -> Optional[Box]:
+        """Find if a box is at a given (x, y) position."""
+        for box in self.boxes:
+            if box.get_position() == pos:
+                return box
+        return None
+    
     def get_level_name(self) -> str:
         """Get current level name."""
         return self.level_manager.get_current_level().name
@@ -384,7 +365,6 @@ class GameLogic:
         for i, pos in enumerate(state.box_positions):
             self.boxes[i].set_position(pos)
             
-        # Restore temp walls
         for pos, duration in state.temp_wall_data:
             wall = self._get_temp_wall_at(pos)
             if wall:
@@ -400,12 +380,10 @@ class GameLogic:
         saved_altered_set = set(state.altered_tile_positions)
         tiles_to_revert = current_altered_set - saved_altered_set
 
-        # 2. Revert those specific tiles back to EMPTY (assuming they were EMPTY before)
         if self.grid:
             for pos in tiles_to_revert:
                 self.grid.set_tile_type(pos[0], pos[1], TileType.EMPTY)
 
-        # 3. Restore the list of altered tiles to its previous state
         self.altered_tile_positions = state.altered_tile_positions
         
         self.moves = state.moves
@@ -430,7 +408,6 @@ class GameLogic:
         if self.movable(new_pos) and not self.lava.is_at(new_pos):   
             box_to_push = self._get_box_at(new_pos)
             if box_to_push:
-                # Check if box can be pushed
                 box_new_pos = (new_pos[0] + dx, new_pos[1] + dy)
                 if self._can_push_box(box_new_pos):
                     return True
@@ -446,7 +423,6 @@ class GameLogic:
         """Get list of valid move directions from current state."""
         valid_moves = []
         for direction in Direction:
-            
             if self.algorithmic_movable(direction):                    
                 valid_moves.append(direction)
                 
@@ -473,6 +449,11 @@ class GameLogic:
         return self.level_complete
 
     
+    
+    # -------------------------------------------------------
+    # AI Specific helper functions
+    # -------------------------------------------------------
+    
     def get_manhattan_distance_to_exit(self) -> int:
         player_pos = self.player.get_position()
         exit_pos = self.exit_pos
@@ -489,10 +470,6 @@ class GameLogic:
             Manhattan distance
         """
         return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
-    
-    # -------------------------------------------------------
-    # AI Specific helper functions
-    # -------------------------------------------------------
     
     def get_observation(self) -> np.ndarray:
         """
