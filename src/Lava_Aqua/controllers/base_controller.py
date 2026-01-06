@@ -118,18 +118,19 @@ class BaseController(ABC):
                         paused = False
             time.sleep(0.05)
     
-    def render_frame(self) -> None:
+    def render_frame(self, show_ui: bool = True) -> None:
         """Render the current game state."""
         animation_time = time.time() - self.start_time
         
         self.renderer.clear()
         self.renderer.draw_game_state(self.game_logic, animation_time)
-        self.renderer.draw_ui_info(
-            self.game_logic.get_level_number(),
-            self.game_logic.get_total_levels(),
-            self.game_logic.moves,
-            self.game_logic.lava.count()
-        )
+        if show_ui:
+            self.renderer.draw_ui_info(
+                self.game_logic.get_level_number(),
+                self.game_logic.get_total_levels(),
+                self.game_logic.moves,
+                self.game_logic.lava.count()
+            )
         self.renderer.flip()
     
     def handle_game_over_state(self) -> GameResult:

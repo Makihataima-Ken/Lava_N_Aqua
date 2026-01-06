@@ -141,7 +141,6 @@ class Renderer:
         self,
         game_logic: GameLogic,
         delay: float = 0.1,
-        show_ui: bool = True,
         animation_time: float = 0.0
     ) -> None:
         """
@@ -162,15 +161,6 @@ class Renderer:
         # Draw main scene
         self.clear()
         self.draw_game_state(game_logic, animation_time)
-
-        # Optional UI bar
-        if show_ui:
-            self.draw_ui_info(
-                game_logic.get_level_number(),
-                game_logic.get_total_levels(),
-                game_logic.moves,
-                game_logic.lava.count()
-            )
 
         # Update frame
         self.flip()
