@@ -27,3 +27,8 @@ solutions/
 # project description files
 Lava_and_Aqua-output.md
 Lava_and_Aqua-output.txt
+
+# uv specific files
+pyproject.toml
+uv.lock
+.python-version
