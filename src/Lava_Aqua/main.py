@@ -1,4 +1,4 @@
-from src.Lava_Aqua.app.game_app import GameApplication
+from .app.game_app import GameApplication
 
 def main_user_play():
     """Run game in user play mode."""
@@ -8,7 +8,7 @@ def main_user_play():
 
 def main_solver_bfs(visualize=False):
     """Run game with BFS solver."""
-    from src.Lava_Aqua.algorithms import BFSSolver
+    from .algorithms import BFSSolver
     app = GameApplication()
     solver = BFSSolver()
     app.run(
@@ -18,7 +18,7 @@ def main_solver_bfs(visualize=False):
     
 def main_solver_dfs(visualize=False):
     """Run game with DFS solver."""
-    from src.Lava_Aqua.algorithms.dfs_solver import DFSSolver
+    from .algorithms.dfs_solver import DFSSolver
     app = GameApplication()
     solver = DFSSolver()
     app.run(
@@ -28,7 +28,7 @@ def main_solver_dfs(visualize=False):
     
 def main_solver_ucs(visualize=False):
     """Run game with UCS solver."""
-    from src.Lava_Aqua.algorithms.ucs_solver import UCSSolver
+    from .algorithms.ucs_solver import UCSSolver
     app = GameApplication()
     solver = UCSSolver()
     app.run(
@@ -38,7 +38,7 @@ def main_solver_ucs(visualize=False):
     
 def main_solver_dijkstra(visualize=False):
     """Run game with Dijkstra solver."""
-    from src.Lava_Aqua.algorithms.dijkstra_solver import DijkstraSolver
+    from .algorithms.dijkstra_solver import DijkstraSolver
     app = GameApplication()
     solver = DijkstraSolver()
     app.run(
@@ -47,7 +47,7 @@ def main_solver_dijkstra(visualize=False):
     )
     
 def main_solver_aStar(visualize=False):
-    from src.Lava_Aqua.algorithms.aStar_solver import AStarSolver
+    from .algorithms.aStar_solver import AStarSolver
     app = GameApplication()
     solver = AStarSolver()
     app.run(
@@ -56,7 +56,7 @@ def main_solver_aStar(visualize=False):
     )
     
 def main_solver_hill_climbing(visualize=False):
-    from src.Lava_Aqua.algorithms.hill_climbing import HillClimbingSolver
+    from .algorithms.hill_climbing import HillClimbingSolver
     app = GameApplication()
     solver = HillClimbingSolver()
     app.run(
@@ -66,8 +66,8 @@ def main_solver_hill_climbing(visualize=False):
 
 def main_agent_train_qlearning():
     """Train Q-Learning agent."""
-    from src.Lava_Aqua.agents.qlearning_agent import QLearningAgent
-    from src.Lava_Aqua.controllers.rl_controller import RLController
+    from .agents.qlearning_agent import QLearningAgent
+    from .controllers.rl_controller import RLController
     
     app = GameApplication()
     height, width = app.game_logic.get_grid_dimensions()
@@ -90,7 +90,7 @@ def main_agent_train_qlearning():
     )
 def main_agent_train_DQN():
     """Train Q-Learning agent."""
-    from src.Lava_Aqua.agents.dqn_agent import DQNAgent
+    from .agents.dqn_agent import DQNAgent
     
     app = GameApplication()
     height, width = app.game_logic.get_grid_dimensions()

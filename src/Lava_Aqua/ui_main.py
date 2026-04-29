@@ -9,6 +9,7 @@ from src.Lava_Aqua.algorithms.aStar_solver import AStarSolver
 from src.Lava_Aqua.algorithms.hill_climbing import HillClimbingSolver
 from src.Lava_Aqua.agents.qlearning_agent import QLearningAgent
 from src.Lava_Aqua.agents.dqn_agent import DQNAgent
+from src.Lava_Aqua.agents.genetic_agent import GeneticAgent
 from src.Lava_Aqua.core.constants import TRAINED_MODELS_DIR
 
 
@@ -26,7 +27,7 @@ def get_available_agent_models(agent_type: str) -> list:
     Scans the trained models directory for available agent files.
     
     Args:
-        agent_type: Type of agent ('qlearning' or 'dqn')
+        agent_type: Type of agent ('qlearning', 'dqn', or 'genetic')
     
     Returns:
         List of tuples (display_name, filepath)
@@ -44,6 +45,8 @@ def get_available_agent_models(agent_type: str) -> list:
         if agent_type == 'qlearning' and 'q-learning' in filename.lower():
             models.append((filename, str(file_path)))
         elif agent_type == 'dqn' and 'dqn' in filename.lower():
+            models.append((filename, str(file_path)))
+        elif agent_type == 'genetic' and 'genetic' in filename.lower():
             models.append((filename, str(file_path)))
         elif agent_type is None:  # Show all models
             models.append((filename, str(file_path)))
@@ -63,7 +66,7 @@ def show_agent_selection_menu(
     Args:
         screen: The pygame screen to draw on
         app: The main game application instance
-        agent_type: Type of agent ('qlearning' or 'dqn')
+        agent_type: Type of agent ('qlearning', 'dqn', or 'genetic')
         base_config: Base configuration for the agent
     """
     available_models = get_available_agent_models(agent_type)
@@ -208,10 +211,18 @@ def show_controller_menu(screen: pygame.Surface, app: GameApplication) -> None:
             "visualize": False
         }
         show_agent_selection_menu(screen, app, "dqn", base_config)
+
+    def select_genetic():
+        base_config = {
+            "agent": GeneticAgent(),
+            "visualize": False
+        }
+        show_agent_selection_menu(screen, app, "genetic", base_config)
     
     controller_items.extend([
         MenuItem("Q-Learning", on_select=select_qlearning),
         MenuItem("DQN", on_select=select_dqn),
+        MenuItem("Genetic", on_select=select_genetic),
     ])
     
     # Add exit option
